@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>旅遊分帳 App（多帳本版）</title>
+  <title>旅遊分帳 App（網址帳本版）</title>
   <meta name="theme-color" content="#2563eb" />
   <style>
     :root{
@@ -52,7 +52,6 @@
     .positive{color:var(--ok);font-weight:800}
     .negative{color:var(--danger);font-weight:800}
     .muted{color:var(--muted)}
-    .footer-note{margin-top:12px;color:var(--muted);font-size:12px;line-height:1.6}
     .stack{display:grid;gap:10px}
     .hidden{display:none!important}
     .tag{display:inline-block;background:#f3f4f6;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700}
@@ -60,26 +59,34 @@
     .tag.expense{background:#fee2e2;color:#991b1b}
     .line-box{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:14px;font-size:14px;line-height:1.7}
     .book-item.active{border-color:#93c5fd;background:#eff6ff}
+    .share-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px}
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hero">
-    <div class="pill">多帳本版・自訂名稱</div>
+    <div class="pill">網址帳本版</div>
     <h1>旅遊分帳 App</h1>
-    <p>可用自訂名稱建立多本分帳表，並在同一頁切換使用。每本帳都可獨立記錄收入、支出與家庭結算。</p>
+    <p>每本帳本都可用網址參數區分，例如 <code>?book=okinawa</code>、<code>?book=tokyo</code>。</p>
   </div>
 
   <div class="grid">
     <section class="card">
-      <h2>1. 分帳表管理</h2>
-      <p class="sub">可建立多本帳，例如：沖繩旅行、墾丁住宿、家庭聚餐。每本帳會分開保存。</p>
+      <h2>1. 帳本網址設定</h2>
+      <p class="sub">每個帳本都用一個自訂代號區分，分享該網址即可直接開到指定帳本。</p>
       <div class="row3">
-        <div><label>新帳本名稱</label><input id="newBookName" placeholder="例如：沖繩四天三夜"></div>
-        <div><label>目前帳本</label><input id="currentBookName" readonly></div>
-        <div style="display:flex;align-items:end"><button style="width:100%" onclick="addBook()">新增帳本</button></div>
+        <div><label>帳本名稱</label><input id="bookName" placeholder="例如：沖繩四天三夜"></div>
+        <div><label>帳本代號（網址用）</label><input id="bookKey" placeholder="例如：okinawa"></div>
+        <div style="display:flex;align-items:end"><button style="width:100%" onclick="saveBookMeta()">儲存帳本設定</button></div>
       </div>
-      <div id="bookList" class="list" style="margin-top:14px"></div>
+      <div class="share-box" style="margin-top:12px">
+        <label>本帳本專屬網址</label>
+        <input id="shareUrl" readonly>
+        <div class="btns" style="margin-top:10px">
+          <button class="ghost" onclick="copyShareUrl()">複製網址</button>
+          <button class="secondary" onclick="openShareUrl()">用新頁開啟</button>
+        </div>
+      </div>
     </section>
 
     <section class="card">
@@ -103,7 +110,7 @@
         <button class="ghost" onclick="exportJson()">匯出 JSON</button>
         <button class="ghost" onclick="triggerImport()">匯入 JSON</button>
         <button class="warn" onclick="exportCSV()">匯出 CSV</button>
-        <button class="danger" onclick="resetCurrentBook()">清空目前帳本</button>
+        <button class="danger" onclick="resetBook()">清空本帳本</button>
         <input id="importFile" type="file" accept=".json,application/json" class="hidden" onchange="importJson(event)">
       </div>
     </section>
@@ -196,15 +203,17 @@
 </div>
 
 <script>
-const STORAGE_KEY = "travelSplitMultiBook_v1";
-let appData = { activeBookId: null, books: [] };
+const STORAGE_KEY = "travelSplitUrlBook_v1";
+let allBooks = {};
+let currentKey = "default";
+let current = null;
 let editingId = null;
 
 function uid(){ return Math.random().toString(36).slice(2,10); }
-function defaultBook(name="未命名分帳表"){
+function defaultBook(key="default"){
   return {
-    id: uid(),
-    bookName: name,
+    bookKey: key,
+    bookName: key === "default" ? "我的分帳表" : key,
     tripName: '',
     currency: 'NT$',
     familySplitMode: 'equal',
@@ -212,116 +221,102 @@ function defaultBook(name="未命名分帳表"){
     entries: []
   };
 }
-function activeBook(){
-  return appData.books.find(b => b.id === appData.activeBookId);
+function getBookKeyFromUrl(){
+  const params = new URLSearchParams(location.search);
+  const raw = (params.get("book") || "default").trim().toLowerCase();
+  return raw.replace(/[^a-z0-9_-]/g, '') || "default";
 }
-function saveStorage(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(appData));
-}
-function loadStorage(){
+function ensureBook(){
+  currentKey = getBookKeyFromUrl();
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw){
-    try{ appData = JSON.parse(raw); }catch(e){}
+    try{ allBooks = JSON.parse(raw) || {}; }catch(e){ allBooks = {}; }
   }
-  if(!appData.books || appData.books.length===0){
-    const b = defaultBook("我的第一本分帳表");
-    appData = { activeBookId: b.id, books: [b] };
-    saveStorage();
-  }
-  if(!appData.activeBookId || !activeBook()){
-    appData.activeBookId = appData.books[0].id;
-  }
+  if(!allBooks[currentKey]) allBooks[currentKey] = defaultBook(currentKey);
+  current = allBooks[currentKey];
+  saveStorage();
+}
+function saveStorage(){
+  allBooks[currentKey] = current;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(allBooks));
 }
 function money(n){
-  const b = activeBook();
-  const cur = b?.currency || 'NT$';
-  return `${cur} ${Number(n||0).toFixed(2)}`;
+  return `${current.currency || 'NT$'} ${Number(n||0).toFixed(2)}`;
 }
 function escapeHtml(str){ return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
+function currentUrlFor(key){
+  const url = new URL(window.location.href);
+  url.searchParams.set("book", key);
+  return url.toString();
+}
+function refreshShareUrl(){
+  document.getElementById('shareUrl').value = currentUrlFor(current.bookKey || currentKey);
+}
+function saveBookMeta(){
+  const name = document.getElementById('bookName').value.trim();
+  const keyRaw = document.getElementById('bookKey').value.trim().toLowerCase();
+  const key = keyRaw.replace(/[^a-z0-9_-]/g, '');
+  if(!name){ alert('請輸入帳本名稱'); return; }
+  if(!key){ alert('請輸入帳本代號'); return; }
+  const oldKey = currentKey;
 
-function addBook(){
-  const name = document.getElementById('newBookName').value.trim();
-  if(!name){ alert('請先輸入帳本名稱'); return; }
-  const b = defaultBook(name);
-  appData.books.push(b);
-  appData.activeBookId = b.id;
-  document.getElementById('newBookName').value = '';
-  editingId = null;
-  saveStorage();
-  renderAll();
-}
-function switchBook(id){
-  appData.activeBookId = id;
-  editingId = null;
-  saveStorage();
-  renderAll();
-}
-function renameBook(id){
-  const b = appData.books.find(x=>x.id===id);
-  if(!b) return;
-  const name = prompt('請輸入新的帳本名稱', b.bookName);
-  if(!name) return;
-  b.bookName = name.trim();
-  saveStorage();
-  renderAll();
-}
-function deleteBook(id){
-  const b = appData.books.find(x=>x.id===id);
-  if(!b) return;
-  if(appData.books.length === 1){
-    alert('至少要保留一本分帳表');
+  current.bookName = name;
+  current.bookKey = key;
+
+  if(key !== oldKey){
+    allBooks[key] = current;
+    delete allBooks[oldKey];
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(allBooks));
+    location.href = currentUrlFor(key);
     return;
   }
-  if(!confirm(`確定刪除帳本「${b.bookName}」？`)) return;
-  appData.books = appData.books.filter(x=>x.id!==id);
-  if(appData.activeBookId === id){
-    appData.activeBookId = appData.books[0].id;
-  }
-  editingId = null;
   saveStorage();
-  renderAll();
+  renderBase();
+  refreshShareUrl();
+  alert('帳本設定已儲存');
 }
-function resetCurrentBook(){
-  const b = activeBook();
-  if(!b) return;
-  if(!confirm(`確定清空目前帳本「${b.bookName}」？`)) return;
-  b.tripName = '';
-  b.currency = 'NT$';
-  b.familySplitMode = 'equal';
-  b.families = [];
-  b.entries = [];
-  editingId = null;
-  saveStorage();
-  renderAll();
+function copyShareUrl(){
+  navigator.clipboard.writeText(document.getElementById('shareUrl').value).then(()=>alert('已複製帳本網址'));
+}
+function openShareUrl(){
+  window.open(document.getElementById('shareUrl').value, '_blank');
 }
 function saveLocal(){
-  const b = activeBook();
-  if(!b) return;
-  b.tripName = document.getElementById('tripName').value.trim();
-  b.currency = document.getElementById('currency').value;
-  b.familySplitMode = document.getElementById('familySplitMode').value;
+  current.tripName = document.getElementById('tripName').value.trim();
+  current.currency = document.getElementById('currency').value;
+  current.familySplitMode = document.getElementById('familySplitMode').value;
   saveStorage();
+  renderResults();
+}
+function resetBook(){
+  if(!confirm(`確定清空帳本「${current.bookName}」？`)) return;
+  const keepName = current.bookName;
+  const keepKey = current.bookKey;
+  current = defaultBook(keepKey);
+  current.bookName = keepName;
+  saveStorage();
+  editingId = null;
+  renderAll();
 }
 function addFamily(){
-  const b = activeBook();
   const name = document.getElementById('newFamilyName').value.trim();
   const weight = Number(document.getElementById('newFamilyWeight').value || 1);
   if(!name){ alert('請先輸入家庭名稱'); return; }
-  b.families.push({id:uid(), name, weight:weight>0?weight:1});
+  current.families.push({id:uid(), name, weight:weight>0?weight:1});
   document.getElementById('newFamilyName').value = '';
   document.getElementById('newFamilyWeight').value = '1';
   saveStorage();
   renderAll();
 }
 function updateFamilyName(id, value){
-  const f = activeBook().families.find(x=>x.id===id);
+  const f = current.families.find(x=>x.id===id);
   if(!f) return;
   f.name = value;
   saveStorage();
   renderAll();
 }
 function updateFamilyWeight(id, value){
-  const f = activeBook().families.find(x=>x.id===id);
+  const f = current.families.find(x=>x.id===id);
   if(!f) return;
   const n = Number(value||1);
   f.weight = n>0?n:1;
@@ -329,21 +324,19 @@ function updateFamilyWeight(id, value){
   renderResults();
 }
 function removeFamily(id){
-  const b = activeBook();
-  const f = b.families.find(x=>x.id===id);
+  const f = current.families.find(x=>x.id===id);
   if(!f) return;
   if(!confirm(`刪除家庭「${f.name}」？相關紀錄會一起調整。`)) return;
-  b.entries = b.entries.filter(e => e.payerFamilyId !== id && !(e.participantFamilyIds||[]).includes(id));
-  b.families = b.families.filter(x=>x.id!==id);
+  current.entries = current.entries.filter(e => e.payerFamilyId !== id && !(e.participantFamilyIds||[]).includes(id));
+  current.families = current.families.filter(x=>x.id!==id);
   saveStorage();
   renderAll();
 }
 function renderEntryInputs(){
-  const b = activeBook();
   const payer = document.getElementById('payerFamily');
   const parts = document.getElementById('participantFamilies');
-  payer.innerHTML = b.families.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
-  parts.innerHTML = b.families.map(f=>`
+  payer.innerHTML = current.families.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
+  parts.innerHTML = current.families.map(f=>`
     <label class="check-item">
       <input class="participant-family" type="checkbox" value="${f.id}" checked>
       <span>${escapeHtml(f.name)}</span>
@@ -384,8 +377,7 @@ function fillEntryForm(entry){
 }
 function cancelEdit(){ clearEntryForm(); }
 function saveEntry(){
-  const b = activeBook();
-  if(b.families.length===0){ alert('請先新增家庭'); return; }
+  if(current.families.length===0){ alert('請先新增家庭'); return; }
   const type = document.getElementById('entryType').value;
   const title = document.getElementById('expenseTitle').value.trim();
   const category = document.getElementById('expenseCategory').value;
@@ -406,40 +398,37 @@ function saveEntry(){
     note
   };
   if(editingId){
-    b.entries = b.entries.map(x => x.id===editingId ? entry : x);
+    current.entries = current.entries.map(x => x.id===editingId ? entry : x);
   }else{
-    b.entries.push(entry);
+    current.entries.push(entry);
   }
   saveStorage();
   clearEntryForm();
   renderAll();
 }
 function editEntry(id){
-  const e = activeBook().entries.find(x=>x.id===id);
+  const e = current.entries.find(x=>x.id===id);
   if(e) fillEntryForm(e);
 }
 function removeEntry(id){
-  const b = activeBook();
-  b.entries = b.entries.filter(x=>x.id!==id);
+  current.entries = current.entries.filter(x=>x.id!==id);
   if(editingId===id) clearEntryForm();
   saveStorage();
   renderAll();
 }
 function getFamilyShareWeights(selectedFamilies){
-  const b = activeBook();
-  if(b.familySplitMode === 'equal') return selectedFamilies.map(f=>({familyId:f.id, weight:1}));
+  if(current.familySplitMode === 'equal') return selectedFamilies.map(f=>({familyId:f.id, weight:1}));
   return selectedFamilies.map(f=>({familyId:f.id, weight:Math.max(0.0001, Number(f.weight||1))}));
 }
 function calculate(){
-  const b = activeBook();
-  const families = b.families;
+  const families = current.families;
   const expensePaid={}, expenseOwed={}, incomeReceived={};
   const categoryMap = {};
   let totalExpense = 0, totalIncome = 0;
 
   families.forEach(f=>{expensePaid[f.id]=0; expenseOwed[f.id]=0; incomeReceived[f.id]=0;});
 
-  for(const ex of b.entries){
+  for(const ex of current.entries){
     const payerFamily = families.find(f=>f.id===ex.payerFamilyId);
     if(!payerFamily) continue;
     const key = `${ex.type}|${ex.category || '未分類'}`;
@@ -492,37 +481,18 @@ function buildSettlements(rows){
   }
   return list;
 }
-function renderBooks(){
-  const box = document.getElementById('bookList');
-  const activeId = appData.activeBookId;
-  box.innerHTML = appData.books.map(b=>`
-    <div class="book-item ${b.id===activeId?'active':''}">
-      <div class="family-head">
-        <div>
-          <div class="family-name">${escapeHtml(b.bookName)}</div>
-          <div class="mini">${escapeHtml(b.tripName || '未填旅程名稱')}</div>
-        </div>
-        <div class="btns">
-          <button class="ghost" onclick="switchBook('${b.id}')">開啟</button>
-          <button class="secondary" onclick="renameBook('${b.id}')">改名</button>
-          <button class="danger" onclick="deleteBook('${b.id}')">刪除</button>
-        </div>
-      </div>
-    </div>
-  `).join('');
-  document.getElementById('currentBookName').value = activeBook().bookName;
-}
 function renderBase(){
-  const b = activeBook();
-  document.getElementById('tripName').value = b.tripName || '';
-  document.getElementById('currency').value = b.currency || 'NT$';
-  document.getElementById('familySplitMode').value = b.familySplitMode || 'equal';
+  document.getElementById('bookName').value = current.bookName || '';
+  document.getElementById('bookKey').value = current.bookKey || currentKey;
+  document.getElementById('tripName').value = current.tripName || '';
+  document.getElementById('currency').value = current.currency || 'NT$';
+  document.getElementById('familySplitMode').value = current.familySplitMode || 'equal';
+  refreshShareUrl();
 }
 function renderFamilies(){
-  const b = activeBook();
   const box = document.getElementById('familyList');
-  if(b.families.length===0){ box.innerHTML = '<div class="muted">尚未新增家庭</div>'; return; }
-  box.innerHTML = b.families.map(f=>`
+  if(current.families.length===0){ box.innerHTML = '<div class="muted">尚未新增家庭</div>'; return; }
+  box.innerHTML = current.families.map(f=>`
     <div class="family">
       <div class="family-head">
         <div class="family-name">${escapeHtml(f.name)}</div>
@@ -539,12 +509,11 @@ function renderFamilies(){
   `).join('');
 }
 function renderEntries(){
-  const b = activeBook();
   const box = document.getElementById('entryList');
-  if(b.entries.length===0){ box.innerHTML = '<div class="muted">尚未新增收入或支出</div>'; return; }
-  box.innerHTML = b.entries.map((e,idx)=>{
-    const fam = b.families.find(f=>f.id===e.payerFamilyId);
-    const parts = e.type==='expense' ? b.families.filter(f=>(e.participantFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、') : '—';
+  if(current.entries.length===0){ box.innerHTML = '<div class="muted">尚未新增收入或支出</div>'; return; }
+  box.innerHTML = current.entries.map((e,idx)=>{
+    const fam = current.families.find(f=>f.id===e.payerFamilyId);
+    const parts = e.type==='expense' ? current.families.filter(f=>(e.participantFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、') : '—';
     return `
       <div class="entry">
         <div class="entry-head">
@@ -553,7 +522,7 @@ function renderEntries(){
             <div class="mini">
               <span class="tag ${e.type==='income'?'income':'expense'}">${e.type==='income'?'收入':'支出'}</span>
               分類：<span class="tag">${escapeHtml(e.category || '未分類')}</span>
-              　家庭：${escapeHtml(fam?.name || '-')}
+             　家庭：${escapeHtml(fam?.name || '-')}
             </div>
           </div>
           <div class="btns">
@@ -569,13 +538,12 @@ function renderEntries(){
   }).join('');
 }
 function renderResults(){
-  const b = activeBook();
   const {familyRows, settlements, categoryRows, totalExpense, totalIncome} = calculate();
   document.getElementById('summaryExpenseTotal').textContent = money(totalExpense);
   document.getElementById('summaryIncomeTotal').textContent = money(totalIncome);
   document.getElementById('summaryNetTotal').textContent = money(totalExpense-totalIncome);
-  document.getElementById('summaryFamilyCount').textContent = b.families.length;
-  document.getElementById('summaryEntryCount').textContent = b.entries.length;
+  document.getElementById('summaryFamilyCount').textContent = current.families.length;
+  document.getElementById('summaryEntryCount').textContent = current.entries.length;
 
   document.getElementById('categoryTable').innerHTML = categoryRows.length===0 ? '<div class="muted">無資料</div>' : `
     <table><thead><tr><th>類型</th><th>分類</th><th class="right">金額</th></tr></thead><tbody>
@@ -595,7 +563,6 @@ function renderResults(){
   document.getElementById('lineTransferText').textContent = settlements.length===0 ? '目前無需轉帳' : settlements.map(s=>`${s.from} → ${s.to}：${money(s.amount)}`).join('\n');
 }
 function renderAll(){
-  renderBooks();
   renderBase();
   renderFamilies();
   renderEntryInputs();
@@ -604,10 +571,10 @@ function renderAll(){
   if(!editingId) clearEntryForm();
 }
 function exportJson(){
-  const blob = new Blob([JSON.stringify(activeBook(), null, 2)], {type:'application/json;charset=utf-8'});
+  const blob = new Blob([JSON.stringify(current, null, 2)], {type:'application/json;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `${activeBook().bookName || '分帳表'}.json`;
+  a.download = `${current.bookName || '分帳表'}.json`;
   a.click();
 }
 function importJson(e){
@@ -617,17 +584,14 @@ function importJson(e){
   reader.onload = () => {
     try{
       const data = JSON.parse(reader.result);
-      const b = defaultBook(data.bookName || file.name.replace(/\.json$/i, ''));
-      Object.assign(b, data);
-      b.id = uid();
-      if(!b.entries) b.entries = [];
-      if(!b.families) b.families = [];
-      appData.books.push(b);
-      appData.activeBookId = b.id;
+      current = Object.assign(defaultBook(currentKey), data);
+      current.bookKey = currentKey;
+      if(!current.entries) current.entries = [];
+      if(!current.families) current.families = [];
       saveStorage();
       editingId = null;
       renderAll();
-      alert('匯入完成，已建立新帳本');
+      alert('匯入完成');
     }catch(err){
       alert('匯入失敗，請確認 JSON 格式正確');
     }
@@ -637,15 +601,15 @@ function importJson(e){
 }
 function triggerImport(){ document.getElementById('importFile').click(); }
 function exportCSV(){
-  const b = activeBook();
   const {familyRows, settlements, categoryRows, totalExpense, totalIncome} = calculate();
   const lines = [];
   const csvCell = v => /[",\n]/.test(String(v ?? '')) ? `"${String(v).replace(/"/g,'""')}"` : String(v ?? '');
   const addSection = (title, rows) => { lines.push(title); rows.forEach(r => lines.push(r.map(csvCell).join(','))); lines.push(''); };
   addSection('總覽', [
-    ['帳本名稱', b.bookName],
-    ['旅程名稱', b.tripName || ''],
-    ['幣別', b.currency || ''],
+    ['帳本名稱', current.bookName],
+    ['帳本代號', current.bookKey],
+    ['旅程名稱', current.tripName || ''],
+    ['幣別', current.currency || ''],
     ['總支出', totalExpense.toFixed(2)],
     ['總收入', totalIncome.toFixed(2)],
     ['淨支出', (totalExpense-totalIncome).toFixed(2)]
@@ -653,36 +617,35 @@ function exportCSV(){
   addSection('分類統計', [['類型','分類','金額']].concat(categoryRows.map(r=>[r.typeText, r.category, r.amount.toFixed(2)])));
   addSection('各家庭結算', [['家庭','支出付款','支出分攤','收入歸屬','淨額']].concat(familyRows.map(r=>[r.familyName, r.expensePaid.toFixed(2), r.expenseOwed.toFixed(2), r.incomeReceived.toFixed(2), r.net.toFixed(2)])));
   addSection('家庭間轉帳清單', [['付款方','收款方','金額']].concat(settlements.map(s=>[s.from, s.to, s.amount.toFixed(2)])));
-  addSection('明細', [['類型','項目','分類','金額','家庭','參與家庭','備註']].concat(b.entries.map(e=>{
-    const fam = b.families.find(f=>f.id===e.payerFamilyId);
-    const parts = e.type==='expense' ? b.families.filter(f=>(e.participantFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、') : '';
+  addSection('明細', [['類型','項目','分類','金額','家庭','參與家庭','備註']].concat(current.entries.map(e=>{
+    const fam = current.families.find(f=>f.id===e.payerFamilyId);
+    const parts = e.type==='expense' ? current.families.filter(f=>(e.participantFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、') : '';
     return [e.type==='income'?'收入':'支出', e.title, e.category||'', Number(e.amount||0).toFixed(2), fam?.name||'', parts, e.note||''];
   })));
   const csv = '\ufeff' + lines.join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
-  a.download = `${b.bookName || '分帳表'}.csv`;
+  a.download = `${current.bookName || '分帳表'}.csv`;
   a.click();
 }
 function copyLineText(){
   navigator.clipboard.writeText(document.getElementById('lineTransferText').textContent).then(()=>alert('已複製 LINE 轉帳文字'));
 }
 
-document.getElementById('tripName').addEventListener('input', ()=>{ saveLocal(); renderResults(); renderBooks(); });
+document.getElementById('tripName').addEventListener('input', ()=>{ saveLocal(); });
 document.getElementById('currency').addEventListener('change', ()=>{ saveLocal(); renderResults(); });
 document.getElementById('familySplitMode').addEventListener('change', ()=>{ saveLocal(); renderResults(); });
 document.getElementById('entryType').addEventListener('change', onEntryTypeChange);
 
-loadStorage();
+ensureBook();
 renderAll();
 
-window.addBook = addBook;
-window.switchBook = switchBook;
-window.renameBook = renameBook;
-window.deleteBook = deleteBook;
-window.resetCurrentBook = resetCurrentBook;
+window.saveBookMeta = saveBookMeta;
+window.copyShareUrl = copyShareUrl;
+window.openShareUrl = openShareUrl;
 window.saveLocal = saveLocal;
+window.resetBook = resetBook;
 window.addFamily = addFamily;
 window.updateFamilyName = updateFamilyName;
 window.updateFamilyWeight = updateFamilyWeight;
