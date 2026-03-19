@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>旅遊分帳 App</title>
+  <title>旅遊分帳 App（家庭結算版）</title>
   <meta name="theme-color" content="#2563eb" />
   <style>
     :root{
@@ -65,9 +65,9 @@
 <body>
 <div class="wrap">
   <div class="hero">
-    <div class="pill">最終版・點連結就能用</div>
+    <div class="pill">家庭結算版・點連結就能用</div>
     <h1>旅遊分帳 App</h1>
-    <p>已內建 Firebase 與固定共用房間，打開網址即可直接同步使用。</p>
+    <p>只顯示各家庭結算與家庭間轉帳，不顯示成員結算。</p>
   </div>
 
   <div class="grid">
@@ -193,7 +193,7 @@
         <div class="result-box">
           <div class="family-head"><div class="family-name">建議轉帳清單</div></div>
           <div id="settlementList"></div>
-          <div class="footer-note">系統會依最終淨額盡量縮減轉帳筆數。</div>
+          <div class="footer-note">系統會依各家庭最終淨額，盡量縮減家庭間轉帳筆數。</div>
         </div>
 
         <div class="result-box">
@@ -359,7 +359,7 @@ function csvCell(v){
 function totalAmount(){ return state.expenses.reduce((s,e)=>s+Number(e.amount||0),0); }
 function exportCSV(){
   saveLocal(false);
-  const {familyRows, memberRows, settlements, categoryRows} = calculate();
+  const {familyRows, settlements, categoryRows} = calculate();
   const lines = [];
   const addSection = (title, rows) => { lines.push(title); rows.forEach(r => lines.push(r.map(csvCell).join(','))); lines.push(''); };
   addSection('總覽', [
@@ -372,7 +372,6 @@ function exportCSV(){
   ]);
   addSection('分類統計', [['分類','金額']].concat(categoryRows.map(r=>[r.category, r.amount.toFixed(2)])));
   addSection('各家庭結算', [['家庭','已付款','應分攤','淨額']].concat(familyRows.map(r=>[r.familyName,r.paid.toFixed(2),r.owed.toFixed(2),r.net.toFixed(2)])));
-  addSection('各成員結算', [['成員','家庭','已付款','應分攤','淨額']].concat(memberRows.map(r=>[r.memberName,r.familyName,r.paid.toFixed(2),r.owed.toFixed(2),r.net.toFixed(2)])));
   addSection('建議轉帳清單', [['付款方','收款方','金額']].concat(settlements.map(s=>[s.from,s.to,s.amount.toFixed(2)])));
   const csv = '\ufeff' + lines.join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
@@ -458,46 +457,53 @@ function distributeToMembers(family, familyAmount){
   const totalWeight = members.reduce((s,m)=>s + Math.max(0.0001, Number(m.weight || 1)), 0);
   return members.map(m=>({memberId:m.id, amount: familyAmount * (Math.max(0.0001, Number(m.weight||1)) / totalWeight)}));
 }
+
 function calculate(){
   const families = state.families;
-  const members = families.flatMap(f => f.members.map(m => ({...m, familyId:f.id, familyName:f.name})));
-  const paidByMember={}, owedByMember={}, paidByFamily={}, owedByFamily={};
+  const paidByFamily={}, owedByFamily={};
   const categoryMap = {};
-  members.forEach(m=>{paidByMember[m.id]=0; owedByMember[m.id]=0;});
+
   families.forEach(f=>{paidByFamily[f.id]=0; owedByFamily[f.id]=0;});
+
   for(const ex of state.expenses){
     const payerFamily = families.find(f=>f.id===ex.payerFamilyId);
-    const payerMember = members.find(m=>m.id===ex.payerMemberId);
     const selectedFamilies = families.filter(f=>ex.participantFamilyIds.includes(f.id));
-    if(!payerFamily || !payerMember || selectedFamilies.length===0) continue;
-    paidByMember[payerMember.id] += Number(ex.amount);
+    if(!payerFamily || selectedFamilies.length===0) continue;
+
     paidByFamily[payerFamily.id] += Number(ex.amount);
     categoryMap[ex.category || '未分類'] = (categoryMap[ex.category || '未分類'] || 0) + Number(ex.amount);
+
     const familyWeights = getFamilyShareWeights(selectedFamilies);
     const totalFamilyWeight = familyWeights.reduce((s,x)=>s + x.weight, 0);
+
     for(const fw of familyWeights){
-      const family = families.find(f=>f.id===fw.familyId); if(!family) continue;
+      const family = families.find(f=>f.id===fw.familyId);
+      if(!family) continue;
       const familyAmount = Number(ex.amount) * (fw.weight / totalFamilyWeight);
       owedByFamily[family.id] += familyAmount;
-      distributeToMembers(family, familyAmount).forEach(item => {
-        owedByMember[item.memberId] = (owedByMember[item.memberId] || 0) + item.amount;
-      });
     }
   }
-  const familyRows = families.map(f=>({familyId:f.id,familyName:f.name,paid:paidByFamily[f.id]||0,owed:owedByFamily[f.id]||0,net:(paidByFamily[f.id]||0)-(owedByFamily[f.id]||0)}));
-  const memberRows = members.map(m=>({memberId:m.id,memberName:m.name,familyId:m.familyId,familyName:m.familyName,paid:paidByMember[m.id]||0,owed:owedByMember[m.id]||0,net:(paidByMember[m.id]||0)-(owedByMember[m.id]||0)}));
-  const settlements = buildSettlements(memberRows);
+
+  const familyRows = families.map(f=>({
+    familyId:f.id,
+    familyName:f.name,
+    paid:paidByFamily[f.id]||0,
+    owed:owedByFamily[f.id]||0,
+    net:(paidByFamily[f.id]||0)-(owedByFamily[f.id]||0)
+  }));
+  const settlements = buildSettlements(familyRows);
   const categoryRows = Object.entries(categoryMap).map(([category,amount])=>({category,amount})).sort((a,b)=>b.amount-a.amount);
-  return {familyRows, memberRows, settlements, categoryRows};
+
+  return {familyRows, settlements, categoryRows};
 }
-function buildSettlements(memberRows){
-  const creditors = memberRows.filter(r=>r.net>0.005).map(r=>({...r,remain:r.net})).sort((a,b)=>b.remain-a.remain);
-  const debtors = memberRows.filter(r=>r.net<-0.005).map(r=>({...r,remain:Math.abs(r.net)})).sort((a,b)=>b.remain-a.remain);
+function buildSettlements(familyRows){
+  const creditors = familyRows.filter(r=>r.net>0.005).map(r=>({...r,remain:r.net})).sort((a,b)=>b.remain-a.remain);
+  const debtors = familyRows.filter(r=>r.net<-0.005).map(r=>({...r,remain:Math.abs(r.net)})).sort((a,b)=>b.remain-a.remain);
   const list=[]; let i=0,j=0;
   while(i<debtors.length && j<creditors.length){
     const d=debtors[i], c=creditors[j];
     const amt=Math.min(d.remain,c.remain);
-    if(amt>0.005) list.push({from:`${d.familyName}｜${d.memberName}`, to:`${c.familyName}｜${c.memberName}`, amount:amt});
+    if(amt>0.005) list.push({from:d.familyName, to:c.familyName, amount:amt});
     d.remain-=amt; c.remain-=amt;
     if(d.remain<=0.005) i++;
     if(c.remain<=0.005) j++;
@@ -505,6 +511,7 @@ function buildSettlements(memberRows){
   return list;
 }
 function renderFamilies(){
+
   const box = document.getElementById('familyList');
   if(state.families.length===0){ box.innerHTML = '<div class="muted">尚未新增家庭</div>'; return; }
   box.innerHTML = state.families.map(f => `
@@ -579,7 +586,7 @@ function renderResults(){
   document.getElementById('summaryMemberCount').textContent = memberCount;
   document.getElementById('summaryExpenseCount').textContent = state.expenses.length;
 
-  const {familyRows, memberRows, settlements, categoryRows} = calculate();
+  const {familyRows, settlements, categoryRows} = calculate();
   document.getElementById('categoryTable').innerHTML = categoryRows.length===0 ? '<div class="muted">無資料</div>' : `
     <table><thead><tr><th>分類</th><th class="right">金額</th></tr></thead><tbody>
     ${categoryRows.map(r=>`<tr><td>${escapeHtml(r.category)}</td><td class="right money">${money(r.amount)}</td></tr>`).join('')}
