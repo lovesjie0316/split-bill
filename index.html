@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>旅遊分帳 App（共享公積金版）</title>
+  <title>旅遊分帳 App（自訂分攤＋公積金自訂）</title>
   <meta name="theme-color" content="#2563eb" />
   <style>
     :root{--bg:#f4f6f8;--card:#fff;--text:#1f2937;--muted:#6b7280;--primary:#2563eb;--danger:#dc2626;--ok:#059669;--warn:#d97706;--border:#e5e7eb;--shadow:0 10px 28px rgba(0,0,0,.08)}
     *{box-sizing:border-box} body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
-    .wrap{max-width:1150px;margin:0 auto;padding:16px 14px 44px}.hero{padding:6px 2px 14px}.hero h1{margin:8px 0;font-size:30px}.hero p{margin:0;color:var(--muted);font-size:14px}
+    .wrap{max-width:1180px;margin:0 auto;padding:16px 14px 44px}.hero{padding:6px 2px 14px}.hero h1{margin:8px 0;font-size:30px}.hero p{margin:0;color:var(--muted);font-size:14px}
     .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#eff6ff;color:var(--primary);font-size:12px;font-weight:800}
     .grid{display:grid;gap:14px}.card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:16px}
     h2{margin:0 0 12px;font-size:18px}.sub{margin:-4px 0 12px;color:var(--muted);font-size:13px}
@@ -20,12 +20,13 @@
     .btns{display:flex;gap:8px;flex-wrap:wrap}
     button{border:none;border-radius:14px;padding:11px 14px;font-size:15px;font-weight:800;cursor:pointer;background:var(--primary);color:#fff}
     button.secondary{background:#fff;color:var(--primary);border:1px solid #bfdbfe} button.ghost{background:#eef2ff;color:var(--primary)} button.danger{background:#fee2e2;color:var(--danger)} button.ok{background:#dcfce7;color:var(--ok)} button.warn{background:#ffedd5;color:var(--warn)}
-    .list{display:grid;gap:10px}.family,.entry,.result-box,.book-item{border:1px solid var(--border);border-radius:16px;padding:12px;background:#fff}
+    .list{display:grid;gap:10px}.family,.entry,.result-box,.book-item,.alloc-box{border:1px solid var(--border);border-radius:16px;padding:12px;background:#fff}
     .family-head,.entry-head,.book-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
     .family-name,.entry-name{font-size:16px;font-weight:800}.mini{font-size:12px;color:var(--muted)}
     .checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
     .check-item{display:flex;align-items:center;gap:10px;border:1px solid var(--border);background:#fff;border-radius:14px;padding:10px 12px}
     .check-item input{width:18px;height:18px;margin:0;accent-color:var(--primary)}
+    .alloc-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
     table{width:100%;border-collapse:collapse;font-size:14px} th,td{padding:10px 8px;border-bottom:1px solid var(--border);text-align:left;vertical-align:top} th{color:var(--muted);font-weight:800}
     .money{font-variant-numeric:tabular-nums}.right{text-align:right}.positive{color:var(--ok);font-weight:800}.negative{color:var(--danger);font-weight:800}.muted{color:var(--muted)} .hidden{display:none!important}
     .tag{display:inline-block;background:#f3f4f6;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700}.tag.income{background:#dcfce7;color:#166534}.tag.expense{background:#fee2e2;color:#991b1b}.tag.fund{background:#fef3c7;color:#92400e}
@@ -36,15 +37,14 @@
 <body>
 <div class="wrap">
   <div class="hero">
-    <div class="pill">共享公積金版</div>
+    <div class="pill">自訂分攤＋公積金自訂</div>
     <h1>旅遊分帳 App</h1>
-    <p>公積金存入可勾選多個家庭共同出資，系統會依勾選家庭平均分攤公積金來源，並顯示餘額。</p>
+    <p>支出可用總金額後自訂每個家庭分攤金額，公積金存入也可自訂每個家庭不同金額。</p>
   </div>
 
   <div class="grid">
     <section class="card">
       <h2>1. 所有帳本</h2>
-      <p class="sub">可查看、開啟、刪除所有帳本。</p>
       <div class="row3">
         <div><label>帳本名稱</label><input id="bookName" placeholder="例如：沖繩四天三夜"></div>
         <div><label>帳本代號（網址用）</label><input id="bookKey" placeholder="例如：okinawa"></div>
@@ -96,43 +96,65 @@
 
     <section class="card">
       <h2>4. 新增或編輯紀錄</h2>
-      <div class="stack">
-        <div class="row4">
-          <div><label>類型</label>
-            <select id="entryType">
-              <option value="expense">支出</option>
-              <option value="income">收入</option>
-              <option value="fund_deposit">公積金存入</option>
-            </select>
-          </div>
-          <div><label>項目名稱</label><input id="expenseTitle" placeholder="例如：租車 / 回饋金 / 公積金投入"></div>
-          <div><label>分類</label>
-            <select id="expenseCategory">
-              <option value="餐費">餐費</option><option value="住宿">住宿</option><option value="交通">交通</option><option value="門票">門票</option><option value="雜支">雜支</option><option value="收入">收入</option><option value="公積金">公積金</option>
-            </select>
-          </div>
-          <div><label>金額</label><input id="expenseAmount" type="number" min="0" step="0.01" placeholder="0"></div>
+      <div class="row4">
+        <div><label>類型</label>
+          <select id="entryType">
+            <option value="expense">支出</option>
+            <option value="income">收入</option>
+            <option value="fund_deposit">公積金存入</option>
+          </select>
         </div>
-        <div class="row3">
-          <div><label>紀錄家庭（一般收入/支出付款家庭）</label><select id="payerFamily"></select></div>
-          <div><label>支出是否先由公積金扣款</label>
-            <select id="useFund"><option value="no">否</option><option value="yes">是</option></select>
-          </div>
-          <div><label>備註</label><input id="expenseNote" placeholder="例如：全員晚餐 / 退稅回補"></div>
+        <div><label>項目名稱</label><input id="expenseTitle" placeholder="例如：租車 / 回饋金 / 公積金投入"></div>
+        <div><label>分類</label>
+          <select id="expenseCategory">
+            <option value="餐費">餐費</option><option value="住宿">住宿</option><option value="交通">交通</option><option value="門票">門票</option><option value="雜支">雜支</option><option value="收入">收入</option><option value="公積金">公積金</option>
+          </select>
         </div>
-        <div>
-          <label>參與分攤家庭（只有一般支出會使用）</label>
-          <div id="participantFamilies" class="checks"></div>
-        </div>
-        <div>
-          <label>公積金出資家庭（只有公積金存入會使用，可勾選多人）</label>
-          <div id="fundContributorFamilies" class="checks"></div>
-        </div>
-        <div class="btns">
-          <button id="saveEntryBtn" onclick="saveEntry()">新增紀錄</button>
-          <button class="secondary hidden" id="cancelEditBtn" onclick="cancelEdit()">取消編輯</button>
-        </div>
+        <div><label>總金額</label><input id="expenseAmount" type="number" min="0" step="0.01" placeholder="0"></div>
       </div>
+
+      <div class="row3" style="margin-top:10px">
+        <div><label>紀錄家庭（一般收入/支出付款家庭）</label><select id="payerFamily"></select></div>
+        <div><label>支出是否先由公積金扣款</label><select id="useFund"><option value="no">否</option><option value="yes">是</option></select></div>
+        <div><label>備註</label><input id="expenseNote" placeholder="例如：全員晚餐 / 退稅回補"></div>
+      </div>
+
+      <div class="alloc-box" style="margin-top:12px">
+        <label>支出分攤方式</label>
+        <select id="expenseSplitMode" onchange="onAllocationModeChange()">
+          <option value="auto">依系統分攤</option>
+          <option value="custom">自訂每個家庭金額</option>
+        </select>
+        <div class="mini" style="margin-top:6px">自訂模式下，系統會檢查各家庭自訂金額加總是否等於總金額。</div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>參與分攤家庭（一般支出用）</label>
+        <div id="participantFamilies" class="checks"></div>
+      </div>
+
+      <div id="customExpenseAllocWrap" class="alloc-box hidden" style="margin-top:12px">
+        <label>支出自訂分攤金額</label>
+        <div id="customExpenseAlloc" class="alloc-grid"></div>
+        <div class="mini" id="customExpenseAllocHint" style="margin-top:8px"></div>
+      </div>
+
+      <div style="margin-top:12px">
+        <label>公積金出資家庭（公積金存入用）</label>
+        <div id="fundContributorFamilies" class="checks"></div>
+      </div>
+
+      <div id="customFundAllocWrap" class="alloc-box hidden" style="margin-top:12px">
+        <label>公積金各家庭自訂存入金額</label>
+        <div id="customFundAlloc" class="alloc-grid"></div>
+        <div class="mini" id="customFundAllocHint" style="margin-top:8px"></div>
+      </div>
+
+      <div class="btns" style="margin-top:12px">
+        <button id="saveEntryBtn" onclick="saveEntry()">新增紀錄</button>
+        <button class="secondary hidden" id="cancelEditBtn" onclick="cancelEdit()">取消編輯</button>
+      </div>
+
       <div id="entryList" class="list" style="margin-top:14px"></div>
     </section>
 
@@ -174,7 +196,7 @@
 </div>
 
 <script>
-const STORAGE_KEY = "travelSplitUrlBookFundShared_v1";
+const STORAGE_KEY = "travelSplitCustomFund_v1";
 let allBooks = {};
 let currentKey = "default";
 let current = null;
@@ -202,23 +224,118 @@ function resetBook(){ if(!confirm(`確定清空帳本「${current.bookName}」�
 function addFamily(){ const name=document.getElementById('newFamilyName').value.trim(); const weight=Number(document.getElementById('newFamilyWeight').value||1); if(!name){ alert('請先輸入家庭名稱'); return; } current.families.push({id:uid(),name,weight:weight>0?weight:1}); document.getElementById('newFamilyName').value=''; document.getElementById('newFamilyWeight').value='1'; saveStorage(); renderAll(); }
 function updateFamilyName(id,value){ const f=current.families.find(x=>x.id===id); if(f){ f.name=value; saveStorage(); renderAll(); } }
 function updateFamilyWeight(id,value){ const f=current.families.find(x=>x.id===id); if(f){ const n=Number(value||1); f.weight=n>0?n:1; saveStorage(); renderResults(); } }
-function removeFamily(id){ const f=current.families.find(x=>x.id===id); if(!f) return; if(!confirm(`刪除家庭「${f.name}」？相關紀錄會一起調整。`)) return; current.entries=current.entries.filter(e=>!(e.fundContributorFamilyIds||[]).includes(id) && e.payerFamilyId!==id && !(e.participantFamilyIds||[]).includes(id)); current.families=current.families.filter(x=>x.id!==id); saveStorage(); renderAll(); }
-function renderEntryInputs(){ const payer=document.getElementById('payerFamily'); const parts=document.getElementById('participantFamilies'); const funds=document.getElementById('fundContributorFamilies'); payer.innerHTML=current.families.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join(''); const checks=current.families.map(f=>`<label class="check-item"><input class="participant-family" type="checkbox" value="${f.id}" checked><span>${escapeHtml(f.name)}</span></label>`).join(''); parts.innerHTML=checks; funds.innerHTML=current.families.map(f=>`<label class="check-item"><input class="fund-contributor-family" type="checkbox" value="${f.id}"><span>${escapeHtml(f.name)}</span></label>`).join(''); onEntryTypeChange(); }
-function onEntryTypeChange(){ const type=document.getElementById('entryType').value; document.getElementById('participantFamilies').parentElement.style.opacity=type==='expense'?'1':'0.5'; document.getElementById('fundContributorFamilies').parentElement.style.opacity=type==='fund_deposit'?'1':'0.5'; document.getElementById('useFund').disabled=type!=='expense'; if(type==='income') document.getElementById('expenseCategory').value='收入'; if(type==='fund_deposit') document.getElementById('expenseCategory').value='公積金'; if(type!=='expense') document.getElementById('useFund').value='no'; }
-function clearEntryForm(){ editingId=null; document.getElementById('entryType').value='expense'; document.getElementById('expenseTitle').value=''; document.getElementById('expenseCategory').value='餐費'; document.getElementById('expenseAmount').value=''; document.getElementById('expenseNote').value=''; document.getElementById('useFund').value='no'; document.querySelectorAll('.participant-family').forEach(c=>c.checked=true); document.querySelectorAll('.fund-contributor-family').forEach(c=>c.checked=false); document.getElementById('saveEntryBtn').textContent='新增紀錄'; document.getElementById('cancelEditBtn').classList.add('hidden'); onEntryTypeChange(); }
-function fillEntryForm(entry){ editingId=entry.id; document.getElementById('entryType').value=entry.type; document.getElementById('expenseTitle').value=entry.title||''; document.getElementById('expenseCategory').value=entry.category||(entry.type==='income'?'收入':entry.type==='fund_deposit'?'公積金':'餐費'); document.getElementById('expenseAmount').value=entry.amount||''; document.getElementById('payerFamily').value=entry.payerFamilyId||''; document.getElementById('expenseNote').value=entry.note||''; document.getElementById('useFund').value=entry.useFund?'yes':'no'; document.querySelectorAll('.participant-family').forEach(c=>c.checked = entry.type==='expense' ? (entry.participantFamilyIds||[]).includes(c.value) : false); document.querySelectorAll('.fund-contributor-family').forEach(c=>c.checked = entry.type==='fund_deposit' ? (entry.fundContributorFamilyIds||[]).includes(c.value) : false); document.getElementById('saveEntryBtn').textContent='儲存修改'; document.getElementById('cancelEditBtn').classList.remove('hidden'); onEntryTypeChange(); }
+function removeFamily(id){ const f=current.families.find(x=>x.id===id); if(!f) return; if(!confirm(`刪除家庭「${f.name}」？相關紀錄會一起調整。`)) return; current.entries=current.entries.filter(e=>!(e.fundContributorFamilyIds||[]).includes(id) && !Object.keys(e.customExpenseAlloc||{}).includes(id) && !Object.keys(e.customFundAlloc||{}).includes(id) && e.payerFamilyId!==id && !(e.participantFamilyIds||[]).includes(id)); current.families=current.families.filter(x=>x.id!==id); saveStorage(); renderAll(); }
+function renderFamilyChecks(targetId, inputClass, checked=true){
+  const el=document.getElementById(targetId);
+  el.innerHTML=current.families.map(f=>`<label class="check-item"><input class="${inputClass}" type="checkbox" value="${f.id}" ${checked?'checked':''}><span>${escapeHtml(f.name)}</span></label>`).join('');
+}
+function renderEntryInputs(){
+  const payer=document.getElementById('payerFamily');
+  payer.innerHTML=current.families.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
+  renderFamilyChecks('participantFamilies','participant-family',True:=True)
+  document.getElementById('participantFamilies').innerHTML = current.families.map(f=>`<label class="check-item"><input class="participant-family" type="checkbox" value="${f.id}" checked><span>${escapeHtml(f.name)}</span></label>`).join('');
+  document.getElementById('fundContributorFamilies').innerHTML = current.families.map(f=>`<label class="check-item"><input class="fund-contributor-family" type="checkbox" value="${f.id}"><span>${escapeHtml(f.name)}</span></label>`).join('');
+  buildCustomAllocInputs();
+  onEntryTypeChange();
+}
+function buildCustomAllocInputs(){
+  const expenseBox=document.getElementById('customExpenseAlloc');
+  const fundBox=document.getElementById('customFundAlloc');
+  expenseBox.innerHTML=current.families.map(f=>`<div><label>${escapeHtml(f.name)}</label><input class="custom-expense-alloc" data-family-id="${f.id}" type="number" min="0" step="0.01" placeholder="0"></div>`).join('');
+  fundBox.innerHTML=current.families.map(f=>`<div><label>${escapeHtml(f.name)}</label><input class="custom-fund-alloc" data-family-id="${f.id}" type="number" min="0" step="0.01" placeholder="0"></div>`).join('');
+  [...document.querySelectorAll('.custom-expense-alloc,.custom-fund-alloc')].forEach(el=>el.addEventListener('input', updateAllocHints));
+}
+function onEntryTypeChange(){
+  const type=document.getElementById('entryType').value;
+  document.getElementById('participantFamilies').parentElement.style.opacity=type==='expense'?'1':'0.5';
+  document.getElementById('fundContributorFamilies').parentElement.style.opacity=type==='fund_deposit'?'1':'0.5';
+  document.getElementById('useFund').disabled=type!=='expense';
+  document.getElementById('expenseSplitMode').disabled=type!=='expense';
+  document.getElementById('customExpenseAllocWrap').classList.toggle('hidden', !(type==='expense' && document.getElementById('expenseSplitMode').value==='custom'));
+  document.getElementById('customFundAllocWrap').classList.toggle('hidden', type!=='fund_deposit');
+  if(type==='income') document.getElementById('expenseCategory').value='收入';
+  if(type==='fund_deposit') document.getElementById('expenseCategory').value='公積金';
+  if(type!=='expense') document.getElementById('useFund').value='no';
+  updateAllocHints();
+}
+function onAllocationModeChange(){ onEntryTypeChange(); }
+function sumInputs(selector){
+  return [...document.querySelectorAll(selector)].reduce((s,el)=>s+Number(el.value||0),0);
+}
+function updateAllocHints(){
+  const total=Number(document.getElementById('expenseAmount').value||0);
+  const expSum=sumInputs('.custom-expense-alloc');
+  const fundSum=sumInputs('.custom-fund-alloc');
+  const expHint=document.getElementById('customExpenseAllocHint');
+  const fundHint=document.getElementById('customFundAllocHint');
+  expHint.textContent = `自訂分攤合計：${money(expSum)}／總金額：${money(total)}${Math.abs(expSum-total)<0.01?'（已符合）':''}`;
+  fundHint.textContent = `公積金存入合計：${money(fundSum)}／總金額：${money(total)}${Math.abs(fundSum-total)<0.01?'（已符合）':''}`;
+}
+function clearEntryForm(){
+  editingId=null;
+  document.getElementById('entryType').value='expense';
+  document.getElementById('expenseTitle').value='';
+  document.getElementById('expenseCategory').value='餐費';
+  document.getElementById('expenseAmount').value='';
+  document.getElementById('expenseNote').value='';
+  document.getElementById('useFund').value='no';
+  document.getElementById('expenseSplitMode').value='auto';
+  document.querySelectorAll('.participant-family').forEach(c=>c.checked=true);
+  document.querySelectorAll('.fund-contributor-family').forEach(c=>c.checked=false);
+  document.querySelectorAll('.custom-expense-alloc,.custom-fund-alloc').forEach(c=>c.value='');
+  document.getElementById('saveEntryBtn').textContent='新增紀錄';
+  document.getElementById('cancelEditBtn').classList.add('hidden');
+  onEntryTypeChange();
+}
+function fillEntryForm(entry){
+  editingId=entry.id;
+  document.getElementById('entryType').value=entry.type;
+  document.getElementById('expenseTitle').value=entry.title||'';
+  document.getElementById('expenseCategory').value=entry.category||(entry.type==='income'?'收入':entry.type==='fund_deposit'?'公積金':'餐費');
+  document.getElementById('expenseAmount').value=entry.amount||'';
+  document.getElementById('payerFamily').value=entry.payerFamilyId||'';
+  document.getElementById('expenseNote').value=entry.note||'';
+  document.getElementById('useFund').value=entry.useFund?'yes':'no';
+  document.getElementById('expenseSplitMode').value=entry.expenseSplitMode||'auto';
+  document.querySelectorAll('.participant-family').forEach(c=>c.checked = entry.type==='expense' ? (entry.participantFamilyIds||[]).includes(c.value) : false);
+  document.querySelectorAll('.fund-contributor-family').forEach(c=>c.checked = entry.type==='fund_deposit' ? (entry.fundContributorFamilyIds||[]).includes(c.value) : false);
+  document.querySelectorAll('.custom-expense-alloc').forEach(c=>c.value = entry.customExpenseAlloc?.[c.dataset.familyId] ?? '');
+  document.querySelectorAll('.custom-fund-alloc').forEach(c=>c.value = entry.customFundAlloc?.[c.dataset.familyId] ?? '');
+  document.getElementById('saveEntryBtn').textContent='儲存修改';
+  document.getElementById('cancelEditBtn').classList.remove('hidden');
+  onEntryTypeChange();
+}
 function cancelEdit(){ clearEntryForm(); }
 function calculateFundBalance(entries=current.entries){ let fundIn=0,fundOut=0; for(const e of entries){ if(e.type==='fund_deposit') fundIn+=Number(e.amount||0); if(e.type==='expense'&&e.useFund) fundOut+=Number(e.amount||0); } return {fundIn,fundOut,fundBalance:fundIn-fundOut}; }
+function readCustomAlloc(selector){
+  const obj={};
+  document.querySelectorAll(selector).forEach(el=>{ const v=Number(el.value||0); if(v>0) obj[el.dataset.familyId]=v; });
+  return obj;
+}
+function validateAllocSum(obj,total){ return Math.abs(Object.values(obj).reduce((s,v)=>s+Number(v),0)-total) < 0.01; }
 function saveEntry(){
   if(current.families.length===0){ alert('請先新增家庭'); return; }
-  const type=document.getElementById('entryType').value, title=document.getElementById('expenseTitle').value.trim(), category=document.getElementById('expenseCategory').value, amount=Number(document.getElementById('expenseAmount').value||0), payerFamilyId=document.getElementById('payerFamily').value, participantFamilyIds=[...document.querySelectorAll('.participant-family:checked')].map(el=>el.value), fundContributorFamilyIds=[...document.querySelectorAll('.fund-contributor-family:checked')].map(el=>el.value), note=document.getElementById('expenseNote').value.trim(), useFund=document.getElementById('useFund').value==='yes';
+  const type=document.getElementById('entryType').value;
+  const title=document.getElementById('expenseTitle').value.trim();
+  const category=document.getElementById('expenseCategory').value;
+  const amount=Number(document.getElementById('expenseAmount').value||0);
+  const payerFamilyId=document.getElementById('payerFamily').value;
+  const participantFamilyIds=[...document.querySelectorAll('.participant-family:checked')].map(el=>el.value);
+  const fundContributorFamilyIds=[...document.querySelectorAll('.fund-contributor-family:checked')].map(el=>el.value);
+  const note=document.getElementById('expenseNote').value.trim();
+  const useFund=document.getElementById('useFund').value==='yes';
+  const expenseSplitMode=document.getElementById('expenseSplitMode').value;
+  const customExpenseAlloc=readCustomAlloc('.custom-expense-alloc');
+  const customFundAlloc=readCustomAlloc('.custom-fund-alloc');
+
   if(!title){ alert('請輸入項目名稱'); return; }
   if(!(amount>0)){ alert('請輸入正確金額'); return; }
   if(type==='income' && !payerFamilyId){ alert('請選擇家庭'); return; }
   if(type==='expense' && (!payerFamilyId || participantFamilyIds.length===0)){ alert('支出請選擇付款家庭並至少勾選一個參與分攤家庭'); return; }
-  if(type==='fund_deposit' && fundContributorFamilyIds.length===0){ alert('公積金存入請至少勾選一個出資家庭'); return; }
+  if(type==='expense' && expenseSplitMode==='custom' && !validateAllocSum(customExpenseAlloc, amount)){ alert('支出自訂分攤金額合計需等於總金額'); return; }
+  if(type==='fund_deposit' && !validateAllocSum(customFundAlloc, amount)){ alert('公積金各家庭自訂存入金額合計需等於總金額'); return; }
 
-  const newEntry={id:editingId||uid(),type,title,category,amount,payerFamilyId:type==='fund_deposit'?'':payerFamilyId,participantFamilyIds:type==='expense'?participantFamilyIds:[],fundContributorFamilyIds:type==='fund_deposit'?fundContributorFamilyIds:[],note,useFund:type==='expense'?useFund:false};
+  const newEntry={id:editingId||uid(),type,title,category,amount,payerFamilyId:type==='fund_deposit'?'':payerFamilyId,participantFamilyIds:type==='expense'?participantFamilyIds:[],fundContributorFamilyIds:type==='fund_deposit'?Object.keys(customFundAlloc):[],customFundAlloc:type==='fund_deposit'?customFundAlloc:{},expenseSplitMode:type==='expense'?expenseSplitMode:'auto',customExpenseAlloc:type==='expense'&&expenseSplitMode==='custom'?customExpenseAlloc:{},note,useFund:type==='expense'?useFund:false};
   const previewEntries=editingId ? current.entries.map(x=>x.id===editingId?newEntry:x) : [...current.entries,newEntry];
   const {fundBalance}=calculateFundBalance(previewEntries);
   if(type==='expense'&&useFund&&fundBalance< -0.0001){ alert('公積金餘額不足，無法用公積金扣款'); return; }
@@ -241,11 +358,7 @@ function calculate(){
     }
 
     if(ex.type==='fund_deposit'){
-      const contribs=families.filter(f=>(ex.fundContributorFamilyIds||[]).includes(f.id));
-      if(contribs.length>0){
-        const per = Number(ex.amount) / contribs.length;
-        contribs.forEach(f=>{ expensePaid[f.id] += per; });
-      }
+      Object.entries(ex.customFundAlloc||{}).forEach(([fid,amt])=>{ expensePaid[fid]=(expensePaid[fid]||0)+Number(amt||0); });
       continue;
     }
 
@@ -253,8 +366,13 @@ function calculate(){
     const selectedFamilies=families.filter(f=>(ex.participantFamilyIds||[]).includes(f.id)); if(selectedFamilies.length===0) continue;
     if(!ex.useFund) expensePaid[payerFamily.id]+=Number(ex.amount);
     totalExpense+=Number(ex.amount);
-    const familyWeights=getFamilyShareWeights(selectedFamilies), totalWeight=familyWeights.reduce((s,x)=>s+x.weight,0);
-    for(const fw of familyWeights){ expenseOwed[fw.familyId]+=Number(ex.amount)*(fw.weight/totalWeight); }
+
+    if(ex.expenseSplitMode==='custom' && ex.customExpenseAlloc && Object.keys(ex.customExpenseAlloc).length){
+      Object.entries(ex.customExpenseAlloc).forEach(([fid,amt])=>{ expenseOwed[fid]=(expenseOwed[fid]||0)+Number(amt||0); });
+    } else {
+      const familyWeights=getFamilyShareWeights(selectedFamilies), totalWeight=familyWeights.reduce((s,x)=>s+x.weight,0);
+      for(const fw of familyWeights){ expenseOwed[fw.familyId]+=Number(ex.amount)*(fw.weight/totalWeight); }
+    }
   }
   const familyRows=families.map(f=>({familyId:f.id,familyName:f.name,expensePaid:expensePaid[f.id]||0,expenseOwed:expenseOwed[f.id]||0,incomeReceived:incomeReceived[f.id]||0,net:(expensePaid[f.id]||0)+(incomeReceived[f.id]||0)-(expenseOwed[f.id]||0)}));
   const settlements=buildSettlements(familyRows);
@@ -262,9 +380,9 @@ function calculate(){
   return {familyRows,settlements,categoryRows,totalExpense,totalIncome,fundIn,fundOut,fundBalance};
 }
 function buildSettlements(rows){ const creditors=rows.filter(r=>r.net>0.005).map(r=>({...r,remain:r.net})).sort((a,b)=>b.remain-a.remain); const debtors=rows.filter(r=>r.net<-0.005).map(r=>({...r,remain:Math.abs(r.net)})).sort((a,b)=>b.remain-a.remain); const list=[]; let i=0,j=0; while(i<debtors.length&&j<creditors.length){ const d=debtors[i],c=creditors[j],amt=Math.min(d.remain,c.remain); if(amt>0.005) list.push({from:d.familyName,to:c.familyName,amount:amt}); d.remain-=amt; c.remain-=amt; if(d.remain<=0.005) i++; if(c.remain<=0.005) j++; } return list; }
-function renderBase(){ document.getElementById('bookName').value=current.bookName||''; document.getElementById('bookKey').value=current.bookKey||currentKey; document.getElementById('tripName').value=current.tripName||''; document.getElementById('currency').value=current.currency||'NT$'; document.getElementById('familySplitMode').value=current.familySplitMode||'equal'; const {fundBalance}=calculateFundBalance(); document.getElementById('fundBalanceView').value=money(fundBalance); refreshShareUrl(); }
+function renderBase(){ document.getElementById('bookName').value=current.bookName||''; document.getElementById('bookKey').value=current.bookKey||currentKey; document.getElementById('tripName').value=current.tripName||''; document.getElementById('currency').value=current.currency||'NT$'; document.getElementById('familySplitMode').value=current.familySplitMode||'equal'; const {fundBalance}=calculateFundBalance(); document.getElementById('fundBalanceView').value=money(fundBalance); refreshShareUrl(); updateAllocHints(); }
 function renderFamilies(){ const box=document.getElementById('familyList'); if(current.families.length===0){ box.innerHTML='<div class="muted">尚未新增家庭</div>'; return; } box.innerHTML=current.families.map(f=>`<div class="family"><div class="family-head"><div class="family-name">${escapeHtml(f.name)}</div><div class="btns"><span class="pill">權重 ${Number(f.weight||1)}</span><button class="danger" onclick="removeFamily('${f.id}')">刪除家庭</button></div></div><div class="row"><div><label>家庭名稱</label><input value="${escapeHtml(f.name)}" oninput="updateFamilyName('${f.id}', this.value)"></div><div><label>家庭權重</label><input type="number" min="0" step="0.1" value="${Number(f.weight||1)}" oninput="updateFamilyWeight('${f.id}', this.value)"></div></div></div>`).join(''); }
-function renderEntries(){ const box=document.getElementById('entryList'); if(current.entries.length===0){ box.innerHTML='<div class="muted">尚未新增紀錄</div>'; return; } box.innerHTML=current.entries.map((e,idx)=>{ const fam=current.families.find(f=>f.id===e.payerFamilyId); const parts=e.type==='expense'?current.families.filter(f=>(e.participantFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、'):'—'; const fundParts=e.type==='fund_deposit'?current.families.filter(f=>(e.fundContributorFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、'):'—'; const typeTag=e.type==='income'?'收入':e.type==='fund_deposit'?'公積金存入':'支出'; const tagClass=e.type==='income'?'income':e.type==='fund_deposit'?'fund':'expense'; return `<div class="entry"><div class="entry-head"><div><div class="entry-name">${idx+1}. ${escapeHtml(e.title)}</div><div class="mini"><span class="tag ${tagClass}">${typeTag}</span> 分類：<span class="tag">${escapeHtml(e.category||'未分類')}</span>　${e.type==='fund_deposit' ? '出資家庭：'+escapeHtml(fundParts) : '家庭：'+escapeHtml(fam?.name||'-')} ${e.type==='expense'&&e.useFund?'　<span class="tag fund">公積金扣款</span>':''}</div></div><div class="btns"><span class="pill money">${money(e.amount)}</span><button class="ghost" onclick="editEntry('${e.id}')">編輯</button><button class="danger" onclick="removeEntry('${e.id}')">刪除</button></div></div><div class="mini">${e.type==='income'?'收入歸屬家庭':e.type==='fund_deposit'?'公積金出資家庭':'參與家庭'}：${escapeHtml(e.type==='fund_deposit'?fundParts:parts)}</div>${e.note?`<div class="mini" style="margin-top:6px">備註：${escapeHtml(e.note)}</div>`:''}</div>`; }).join(''); }
+function renderEntries(){ const box=document.getElementById('entryList'); if(current.entries.length===0){ box.innerHTML='<div class="muted">尚未新增紀錄</div>'; return; } box.innerHTML=current.entries.map((e,idx)=>{ const fam=current.families.find(f=>f.id===e.payerFamilyId); const parts=e.type==='expense'?current.families.filter(f=>(e.participantFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、'):'—'; const fundAlloc=e.type==='fund_deposit'?Object.entries(e.customFundAlloc||{}).map(([fid,amt])=>`${current.families.find(f=>f.id===fid)?.name||fid}:${money(amt)}`).join('、'):'—'; const customExp=e.type==='expense'&&e.expenseSplitMode==='custom'?Object.entries(e.customExpenseAlloc||{}).map(([fid,amt])=>`${current.families.find(f=>f.id===fid)?.name||fid}:${money(amt)}`).join('、'):''; const typeTag=e.type==='income'?'收入':e.type==='fund_deposit'?'公積金存入':'支出'; const tagClass=e.type==='income'?'income':e.type==='fund_deposit'?'fund':'expense'; return `<div class="entry"><div class="entry-head"><div><div class="entry-name">${idx+1}. ${escapeHtml(e.title)}</div><div class="mini"><span class="tag ${tagClass}">${typeTag}</span> 分類：<span class="tag">${escapeHtml(e.category||'未分類')}</span>　${e.type==='fund_deposit' ? '出資明細：'+escapeHtml(fundAlloc) : '家庭：'+escapeHtml(fam?.name||'-')} ${e.type==='expense'&&e.useFund?'　<span class="tag fund">公積金扣款</span>':''} ${customExp?`　<span class="tag">自訂分攤</span>`:''}</div></div><div class="btns"><span class="pill money">${money(e.amount)}</span><button class="ghost" onclick="editEntry('${e.id}')">編輯</button><button class="danger" onclick="removeEntry('${e.id}')">刪除</button></div></div><div class="mini">${e.type==='income'?'收入歸屬家庭':e.type==='fund_deposit'?'公積金出資明細':'參與家庭'}：${escapeHtml(e.type==='fund_deposit'?fundAlloc:parts)}</div>${customExp?`<div class="mini" style="margin-top:6px">支出自訂分攤：${escapeHtml(customExp)}</div>`:''}${e.note?`<div class="mini" style="margin-top:6px">備註：${escapeHtml(e.note)}</div>`:''}</div>`; }).join(''); }
 function renderResults(){ const {familyRows,settlements,categoryRows,totalExpense,totalIncome,fundIn,fundOut,fundBalance}=calculate(); document.getElementById('summaryExpenseTotal').textContent=money(totalExpense); document.getElementById('summaryIncomeTotal').textContent=money(totalIncome); document.getElementById('summaryFundIn').textContent=money(fundIn); document.getElementById('summaryFundOut').textContent=money(fundOut); document.getElementById('summaryFundBalance').textContent=money(fundBalance); document.getElementById('summaryNetTotal').textContent=money(totalExpense-totalIncome); document.getElementById('summaryFamilyCount').textContent=current.families.length; document.getElementById('summaryEntryCount').textContent=current.entries.length; document.getElementById('fundBalanceView').value=money(fundBalance);
   document.getElementById('categoryTable').innerHTML=categoryRows.length===0?'<div class="muted">無資料</div>':`<table><thead><tr><th>類型</th><th>分類</th><th class="right">金額</th></tr></thead><tbody>${categoryRows.map(r=>`<tr><td>${escapeHtml(r.typeText)}</td><td>${escapeHtml(r.category)}</td><td class="right money">${money(r.amount)}</td></tr>`).join('')}</tbody></table>`;
   document.getElementById('familyResultTable').innerHTML=familyRows.length===0?'<div class="muted">無資料</div>':`<table><thead><tr><th>家庭</th><th class="right">支出付款/公積金出資</th><th class="right">支出分攤</th><th class="right">收入歸屬</th><th class="right">淨額</th></tr></thead><tbody>${familyRows.map(r=>`<tr><td>${escapeHtml(r.familyName)}</td><td class="right money">${money(r.expensePaid)}</td><td class="right money">${money(r.expenseOwed)}</td><td class="right money">${money(r.incomeReceived)}</td><td class="right money ${r.net>=0?'positive':'negative'}">${money(r.net)}</td></tr>`).join('')}</tbody></table>`;
@@ -282,6 +400,8 @@ document.getElementById('tripName').addEventListener('input', saveLocal);
 document.getElementById('currency').addEventListener('change', saveLocal);
 document.getElementById('familySplitMode').addEventListener('change', saveLocal);
 document.getElementById('entryType').addEventListener('change', onEntryTypeChange);
+document.getElementById('expenseSplitMode').addEventListener('change', onAllocationModeChange);
+document.getElementById('expenseAmount').addEventListener('input', updateAllocHints);
 
 ensureBook(); renderAll();
 
