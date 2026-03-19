@@ -3,22 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>旅遊分帳 App（網址帳本版）</title>
+  <title>旅遊分帳 App（網址帳本＋公積金）</title>
   <meta name="theme-color" content="#2563eb" />
   <style>
     :root{
       --bg:#f4f6f8;--card:#fff;--text:#1f2937;--muted:#6b7280;--primary:#2563eb;--danger:#dc2626;
-      --ok:#059669;--warn:#d97706;--border:#e5e7eb;--shadow:0 10px 28px rgba(0,0,0,.08);--radius:18px;
+      --ok:#059669;--warn:#d97706;--border:#e5e7eb;--shadow:0 10px 28px rgba(0,0,0,.08);
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;background:var(--bg);color:var(--text)}
     .wrap{max-width:1100px;margin:0 auto;padding:16px 14px 44px}
     .hero{padding:6px 2px 14px}
-    .hero h1{margin:8px 0 8px;font-size:30px;line-height:1.15}
+    .hero h1{margin:8px 0;font-size:30px}
     .hero p{margin:0;color:var(--muted);font-size:14px}
     .pill{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#eff6ff;color:var(--primary);font-size:12px;font-weight:800}
     .grid{display:grid;gap:14px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:16px}
+    .card{background:#fff;border:1px solid var(--border);border-radius:18px;box-shadow:var(--shadow);padding:16px}
     h2{margin:0 0 12px;font-size:18px}
     .sub{margin:-4px 0 12px;color:var(--muted);font-size:13px}
     .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -26,9 +26,8 @@
     .row4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px}
     @media (max-width:760px){.row,.row3,.row4{grid-template-columns:1fr}.hero h1{font-size:28px}}
     label{display:block;font-size:13px;color:var(--muted);font-weight:700;margin:0 0 6px}
-    input,select,textarea{width:100%;border:1px solid var(--border);background:#fff;border-radius:14px;padding:12px 13px;font-size:16px;outline:none;color:var(--text)}
-    textarea{min-height:90px;resize:vertical}
-    input:focus,select:focus,textarea:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(37,99,235,.12)}
+    input,select{width:100%;border:1px solid var(--border);background:#fff;border-radius:14px;padding:12px 13px;font-size:16px;outline:none;color:var(--text)}
+    input:focus,select:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(37,99,235,.12)}
     .btns{display:flex;gap:8px;flex-wrap:wrap}
     button{border:none;border-radius:14px;padding:11px 14px;font-size:15px;font-weight:800;cursor:pointer;background:var(--primary);color:#fff}
     button.secondary{background:#fff;color:var(--primary);border:1px solid #bfdbfe}
@@ -37,7 +36,7 @@
     button.ok{background:#dcfce7;color:var(--ok)}
     button.warn{background:#ffedd5;color:var(--warn)}
     .list{display:grid;gap:10px}
-    .family,.entry,.result-box,.book-item{border:1px solid var(--border);border-radius:16px;padding:12px;background:#fff}
+    .family,.entry,.result-box{border:1px solid var(--border);border-radius:16px;padding:12px;background:#fff}
     .family-head,.entry-head{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:10px}
     .family-name,.entry-name{font-size:16px;font-weight:800}
     .mini{font-size:12px;color:var(--muted)}
@@ -52,28 +51,26 @@
     .positive{color:var(--ok);font-weight:800}
     .negative{color:var(--danger);font-weight:800}
     .muted{color:var(--muted)}
-    .stack{display:grid;gap:10px}
     .hidden{display:none!important}
     .tag{display:inline-block;background:#f3f4f6;border-radius:999px;padding:5px 9px;font-size:12px;font-weight:700}
     .tag.income{background:#dcfce7;color:#166534}
     .tag.expense{background:#fee2e2;color:#991b1b}
+    .tag.fund{background:#fef3c7;color:#92400e}
     .line-box{white-space:pre-wrap;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:14px;font-size:14px;line-height:1.7}
-    .book-item.active{border-color:#93c5fd;background:#eff6ff}
     .share-box{background:#eff6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px}
   </style>
 </head>
 <body>
 <div class="wrap">
   <div class="hero">
-    <div class="pill">網址帳本版</div>
+    <div class="pill">網址帳本版＋公積金</div>
     <h1>旅遊分帳 App</h1>
-    <p>每本帳本都可用網址參數區分，例如 <code>?book=okinawa</code>、<code>?book=tokyo</code>。</p>
+    <p>支援公積金存入、支出從公積金扣款，並顯示公積金餘額。</p>
   </div>
 
   <div class="grid">
     <section class="card">
       <h2>1. 帳本網址設定</h2>
-      <p class="sub">每個帳本都用一個自訂代號區分，分享該網址即可直接開到指定帳本。</p>
       <div class="row3">
         <div><label>帳本名稱</label><input id="bookName" placeholder="例如：沖繩四天三夜"></div>
         <div><label>帳本代號（網址用）</label><input id="bookKey" placeholder="例如：okinawa"></div>
@@ -91,7 +88,7 @@
 
     <section class="card">
       <h2>2. 帳本基本設定</h2>
-      <div class="row3">
+      <div class="row4">
         <div><label>旅程名稱</label><input id="tripName" placeholder="例如：東京親子五日遊"></div>
         <div><label>幣別</label>
           <select id="currency">
@@ -104,6 +101,7 @@
             <option value="familyWeight">依家庭權重</option>
           </select>
         </div>
+        <div><label>公積金餘額</label><input id="fundBalanceView" readonly></div>
       </div>
       <div class="btns" style="margin-top:12px">
         <button class="secondary" onclick="saveLocal()">儲存本機</button>
@@ -133,9 +131,10 @@
             <select id="entryType">
               <option value="expense">支出</option>
               <option value="income">收入</option>
+              <option value="fund_deposit">公積金存入</option>
             </select>
           </div>
-          <div><label>項目名稱</label><input id="expenseTitle" placeholder="例如：租車 / 回饋金 / 退稅"></div>
+          <div><label>項目名稱</label><input id="expenseTitle" placeholder="例如：租車 / 回饋金 / 公積金投入"></div>
           <div><label>分類</label>
             <select id="expenseCategory">
               <option value="餐費">餐費</option>
@@ -144,16 +143,23 @@
               <option value="門票">門票</option>
               <option value="雜支">雜支</option>
               <option value="收入">收入</option>
+              <option value="公積金">公積金</option>
             </select>
           </div>
           <div><label>金額</label><input id="expenseAmount" type="number" min="0" step="0.01" placeholder="0"></div>
         </div>
-        <div class="row">
-          <div><label>紀錄家庭（支出付款家庭 / 收入歸屬家庭）</label><select id="payerFamily"></select></div>
+        <div class="row3">
+          <div><label>紀錄家庭（收入/公積金存入/支出付款家庭）</label><select id="payerFamily"></select></div>
+          <div><label>支出是否先由公積金扣款</label>
+            <select id="useFund">
+              <option value="no">否</option>
+              <option value="yes">是</option>
+            </select>
+          </div>
           <div><label>備註</label><input id="expenseNote" placeholder="例如：全員晚餐 / 退稅回補"></div>
         </div>
         <div>
-          <label>參與分攤家庭（只有支出會使用）</label>
+          <label>參與分攤家庭（只有一般支出會使用）</label>
           <div id="participantFamilies" class="checks"></div>
         </div>
         <div class="btns">
@@ -172,6 +178,9 @@
           <table><tbody>
             <tr><th>總支出</th><td id="summaryExpenseTotal" class="money right">-</td></tr>
             <tr><th>總收入</th><td id="summaryIncomeTotal" class="money right">-</td></tr>
+            <tr><th>公積金存入</th><td id="summaryFundIn" class="money right">-</td></tr>
+            <tr><th>公積金扣款</th><td id="summaryFundOut" class="money right">-</td></tr>
+            <tr><th>公積金餘額</th><td id="summaryFundBalance" class="money right">-</td></tr>
             <tr><th>淨支出</th><td id="summaryNetTotal" class="money right">-</td></tr>
             <tr><th>家庭數</th><td id="summaryFamilyCount" class="right">0</td></tr>
             <tr><th>紀錄筆數</th><td id="summaryEntryCount" class="right">0</td></tr>
@@ -203,7 +212,7 @@
 </div>
 
 <script>
-const STORAGE_KEY = "travelSplitUrlBook_v1";
+const STORAGE_KEY = "travelSplitUrlBookFund_v1";
 let allBooks = {};
 let currentKey = "default";
 let current = null;
@@ -211,15 +220,7 @@ let editingId = null;
 
 function uid(){ return Math.random().toString(36).slice(2,10); }
 function defaultBook(key="default"){
-  return {
-    bookKey: key,
-    bookName: key === "default" ? "我的分帳表" : key,
-    tripName: '',
-    currency: 'NT$',
-    familySplitMode: 'equal',
-    families: [],
-    entries: []
-  };
+  return { bookKey:key, bookName:key==="default"?"我的分帳表":key, tripName:'', currency:'NT$', familySplitMode:'equal', families:[], entries:[] };
 }
 function getBookKeyFromUrl(){
   const params = new URLSearchParams(location.search);
@@ -229,29 +230,16 @@ function getBookKeyFromUrl(){
 function ensureBook(){
   currentKey = getBookKeyFromUrl();
   const raw = localStorage.getItem(STORAGE_KEY);
-  if(raw){
-    try{ allBooks = JSON.parse(raw) || {}; }catch(e){ allBooks = {}; }
-  }
+  if(raw){ try{ allBooks = JSON.parse(raw) || {}; }catch(e){ allBooks = {}; } }
   if(!allBooks[currentKey]) allBooks[currentKey] = defaultBook(currentKey);
   current = allBooks[currentKey];
   saveStorage();
 }
-function saveStorage(){
-  allBooks[currentKey] = current;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(allBooks));
-}
-function money(n){
-  return `${current.currency || 'NT$'} ${Number(n||0).toFixed(2)}`;
-}
+function saveStorage(){ allBooks[currentKey] = current; localStorage.setItem(STORAGE_KEY, JSON.stringify(allBooks)); }
+function money(n){ return `${current.currency || 'NT$'} ${Number(n||0).toFixed(2)}`; }
 function escapeHtml(str){ return String(str ?? '').replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s])); }
-function currentUrlFor(key){
-  const url = new URL(window.location.href);
-  url.searchParams.set("book", key);
-  return url.toString();
-}
-function refreshShareUrl(){
-  document.getElementById('shareUrl').value = currentUrlFor(current.bookKey || currentKey);
-}
+function currentUrlFor(key){ const url = new URL(window.location.href); url.searchParams.set("book", key); return url.toString(); }
+function refreshShareUrl(){ document.getElementById('shareUrl').value = currentUrlFor(current.bookKey || currentKey); }
 function saveBookMeta(){
   const name = document.getElementById('bookName').value.trim();
   const keyRaw = document.getElementById('bookKey').value.trim().toLowerCase();
@@ -259,10 +247,8 @@ function saveBookMeta(){
   if(!name){ alert('請輸入帳本名稱'); return; }
   if(!key){ alert('請輸入帳本代號'); return; }
   const oldKey = currentKey;
-
   current.bookName = name;
   current.bookKey = key;
-
   if(key !== oldKey){
     allBooks[key] = current;
     delete allBooks[oldKey];
@@ -270,85 +256,49 @@ function saveBookMeta(){
     location.href = currentUrlFor(key);
     return;
   }
-  saveStorage();
-  renderBase();
-  refreshShareUrl();
-  alert('帳本設定已儲存');
+  saveStorage(); renderBase(); refreshShareUrl(); alert('帳本設定已儲存');
 }
-function copyShareUrl(){
-  navigator.clipboard.writeText(document.getElementById('shareUrl').value).then(()=>alert('已複製帳本網址'));
-}
-function openShareUrl(){
-  window.open(document.getElementById('shareUrl').value, '_blank');
-}
-function saveLocal(){
-  current.tripName = document.getElementById('tripName').value.trim();
-  current.currency = document.getElementById('currency').value;
-  current.familySplitMode = document.getElementById('familySplitMode').value;
-  saveStorage();
-  renderResults();
-}
+function copyShareUrl(){ navigator.clipboard.writeText(document.getElementById('shareUrl').value).then(()=>alert('已複製帳本網址')); }
+function openShareUrl(){ window.open(document.getElementById('shareUrl').value, '_blank'); }
+function saveLocal(){ current.tripName = document.getElementById('tripName').value.trim(); current.currency = document.getElementById('currency').value; current.familySplitMode = document.getElementById('familySplitMode').value; saveStorage(); renderResults(); }
 function resetBook(){
   if(!confirm(`確定清空帳本「${current.bookName}」？`)) return;
-  const keepName = current.bookName;
-  const keepKey = current.bookKey;
-  current = defaultBook(keepKey);
-  current.bookName = keepName;
-  saveStorage();
-  editingId = null;
-  renderAll();
+  const keepName = current.bookName, keepKey = current.bookKey;
+  current = defaultBook(keepKey); current.bookName = keepName; saveStorage(); editingId = null; renderAll();
 }
 function addFamily(){
   const name = document.getElementById('newFamilyName').value.trim();
   const weight = Number(document.getElementById('newFamilyWeight').value || 1);
   if(!name){ alert('請先輸入家庭名稱'); return; }
   current.families.push({id:uid(), name, weight:weight>0?weight:1});
-  document.getElementById('newFamilyName').value = '';
-  document.getElementById('newFamilyWeight').value = '1';
-  saveStorage();
-  renderAll();
+  document.getElementById('newFamilyName').value=''; document.getElementById('newFamilyWeight').value='1';
+  saveStorage(); renderAll();
 }
-function updateFamilyName(id, value){
-  const f = current.families.find(x=>x.id===id);
-  if(!f) return;
-  f.name = value;
-  saveStorage();
-  renderAll();
-}
-function updateFamilyWeight(id, value){
-  const f = current.families.find(x=>x.id===id);
-  if(!f) return;
-  const n = Number(value||1);
-  f.weight = n>0?n:1;
-  saveStorage();
-  renderResults();
-}
+function updateFamilyName(id, value){ const f = current.families.find(x=>x.id===id); if(f){ f.name=value; saveStorage(); renderAll(); } }
+function updateFamilyWeight(id, value){ const f = current.families.find(x=>x.id===id); if(f){ const n=Number(value||1); f.weight=n>0?n:1; saveStorage(); renderResults(); } }
 function removeFamily(id){
-  const f = current.families.find(x=>x.id===id);
-  if(!f) return;
+  const f = current.families.find(x=>x.id===id); if(!f) return;
   if(!confirm(`刪除家庭「${f.name}」？相關紀錄會一起調整。`)) return;
   current.entries = current.entries.filter(e => e.payerFamilyId !== id && !(e.participantFamilyIds||[]).includes(id));
   current.families = current.families.filter(x=>x.id!==id);
-  saveStorage();
-  renderAll();
+  saveStorage(); renderAll();
 }
 function renderEntryInputs(){
   const payer = document.getElementById('payerFamily');
   const parts = document.getElementById('participantFamilies');
   payer.innerHTML = current.families.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
-  parts.innerHTML = current.families.map(f=>`
-    <label class="check-item">
-      <input class="participant-family" type="checkbox" value="${f.id}" checked>
-      <span>${escapeHtml(f.name)}</span>
-    </label>
-  `).join('');
+  parts.innerHTML = current.families.map(f=>`<label class="check-item"><input class="participant-family" type="checkbox" value="${f.id}" checked><span>${escapeHtml(f.name)}</span></label>`).join('');
   onEntryTypeChange();
 }
 function onEntryTypeChange(){
   const type = document.getElementById('entryType').value;
   const wrap = document.getElementById('participantFamilies').parentElement;
-  wrap.style.opacity = type === 'income' ? '0.5' : '1';
+  const fundSelect = document.getElementById('useFund');
+  wrap.style.opacity = type === 'expense' ? '1' : '0.5';
+  fundSelect.disabled = type !== 'expense';
   if(type === 'income') document.getElementById('expenseCategory').value = '收入';
+  if(type === 'fund_deposit') document.getElementById('expenseCategory').value = '公積金';
+  if(type !== 'expense') fundSelect.value = 'no';
 }
 function clearEntryForm(){
   editingId = null;
@@ -357,6 +307,7 @@ function clearEntryForm(){
   document.getElementById('expenseCategory').value = '餐費';
   document.getElementById('expenseAmount').value = '';
   document.getElementById('expenseNote').value = '';
+  document.getElementById('useFund').value = 'no';
   document.querySelectorAll('.participant-family').forEach(c=>c.checked = true);
   document.getElementById('saveEntryBtn').textContent = '新增紀錄';
   document.getElementById('cancelEditBtn').classList.add('hidden');
@@ -366,16 +317,25 @@ function fillEntryForm(entry){
   editingId = entry.id;
   document.getElementById('entryType').value = entry.type;
   document.getElementById('expenseTitle').value = entry.title || '';
-  document.getElementById('expenseCategory').value = entry.category || (entry.type==='income'?'收入':'餐費');
+  document.getElementById('expenseCategory').value = entry.category || (entry.type==='income'?'收入':entry.type==='fund_deposit'?'公積金':'餐費');
   document.getElementById('expenseAmount').value = entry.amount || '';
   document.getElementById('payerFamily').value = entry.payerFamilyId || '';
   document.getElementById('expenseNote').value = entry.note || '';
+  document.getElementById('useFund').value = entry.useFund ? 'yes' : 'no';
   document.querySelectorAll('.participant-family').forEach(c=>c.checked = entry.type==='expense' ? (entry.participantFamilyIds||[]).includes(c.value) : false);
   document.getElementById('saveEntryBtn').textContent = '儲存修改';
   document.getElementById('cancelEditBtn').classList.remove('hidden');
   onEntryTypeChange();
 }
 function cancelEdit(){ clearEntryForm(); }
+function calculateFundBalance(entries=current.entries){
+  let fundIn = 0, fundOut = 0;
+  for(const e of entries){
+    if(e.type === 'fund_deposit') fundIn += Number(e.amount||0);
+    if(e.type === 'expense' && e.useFund) fundOut += Number(e.amount||0);
+  }
+  return {fundIn, fundOut, fundBalance: fundIn - fundOut};
+}
 function saveEntry(){
   if(current.families.length===0){ alert('請先新增家庭'); return; }
   const type = document.getElementById('entryType').value;
@@ -385,53 +345,42 @@ function saveEntry(){
   const payerFamilyId = document.getElementById('payerFamily').value;
   const participantFamilyIds = [...document.querySelectorAll('.participant-family:checked')].map(el=>el.value);
   const note = document.getElementById('expenseNote').value.trim();
+  const useFund = document.getElementById('useFund').value === 'yes';
 
   if(!title){ alert('請輸入項目名稱'); return; }
   if(!(amount > 0)){ alert('請輸入正確金額'); return; }
   if(!payerFamilyId){ alert('請選擇家庭'); return; }
   if(type==='expense' && participantFamilyIds.length===0){ alert('支出請至少勾選一個參與分攤家庭'); return; }
 
-  const entry = {
-    id: editingId || uid(),
-    type, title, category, amount, payerFamilyId,
-    participantFamilyIds: type==='expense' ? participantFamilyIds : [],
-    note
-  };
-  if(editingId){
-    current.entries = current.entries.map(x => x.id===editingId ? entry : x);
-  }else{
-    current.entries.push(entry);
+  const newEntry = { id: editingId || uid(), type, title, category, amount, payerFamilyId, participantFamilyIds: type==='expense' ? participantFamilyIds : [], note, useFund: type==='expense' ? useFund : false };
+  const previewEntries = editingId ? current.entries.map(x => x.id===editingId ? newEntry : x) : [...current.entries, newEntry];
+  const {fundBalance} = calculateFundBalance(previewEntries);
+  if(type==='expense' && useFund && fundBalance < -0.0001){
+    alert('公積金餘額不足，無法用公積金扣款');
+    return;
   }
-  saveStorage();
-  clearEntryForm();
-  renderAll();
+
+  if(editingId){ current.entries = current.entries.map(x => x.id===editingId ? newEntry : x); }
+  else { current.entries.push(newEntry); }
+  saveStorage(); clearEntryForm(); renderAll();
 }
-function editEntry(id){
-  const e = current.entries.find(x=>x.id===id);
-  if(e) fillEntryForm(e);
-}
-function removeEntry(id){
-  current.entries = current.entries.filter(x=>x.id!==id);
-  if(editingId===id) clearEntryForm();
-  saveStorage();
-  renderAll();
-}
-function getFamilyShareWeights(selectedFamilies){
-  if(current.familySplitMode === 'equal') return selectedFamilies.map(f=>({familyId:f.id, weight:1}));
-  return selectedFamilies.map(f=>({familyId:f.id, weight:Math.max(0.0001, Number(f.weight||1))}));
-}
+function editEntry(id){ const e = current.entries.find(x=>x.id===id); if(e) fillEntryForm(e); }
+function removeEntry(id){ current.entries = current.entries.filter(x=>x.id!==id); if(editingId===id) clearEntryForm(); saveStorage(); renderAll(); }
+function getFamilyShareWeights(selectedFamilies){ if(current.familySplitMode === 'equal') return selectedFamilies.map(f=>({familyId:f.id, weight:1})); return selectedFamilies.map(f=>({familyId:f.id, weight:Math.max(0.0001, Number(f.weight||1))})); }
 function calculate(){
   const families = current.families;
   const expensePaid={}, expenseOwed={}, incomeReceived={};
   const categoryMap = {};
-  let totalExpense = 0, totalIncome = 0;
+  let totalExpense=0, totalIncome=0;
+  const {fundIn, fundOut, fundBalance} = calculateFundBalance();
 
   families.forEach(f=>{expensePaid[f.id]=0; expenseOwed[f.id]=0; incomeReceived[f.id]=0;});
 
   for(const ex of current.entries){
     const payerFamily = families.find(f=>f.id===ex.payerFamilyId);
     if(!payerFamily) continue;
-    const key = `${ex.type}|${ex.category || '未分類'}`;
+    const typeLabel = ex.type === 'fund_deposit' ? '公積金存入' : ex.type;
+    const key = `${typeLabel}|${ex.category || '未分類'}`;
     categoryMap[key] = (categoryMap[key] || 0) + Number(ex.amount);
 
     if(ex.type === 'income'){
@@ -439,10 +388,17 @@ function calculate(){
       totalIncome += Number(ex.amount);
       continue;
     }
+    if(ex.type === 'fund_deposit'){
+      continue;
+    }
     const selectedFamilies = families.filter(f=>(ex.participantFamilyIds||[]).includes(f.id));
     if(selectedFamilies.length===0) continue;
-    expensePaid[payerFamily.id] += Number(ex.amount);
+
+    if(!ex.useFund){
+      expensePaid[payerFamily.id] += Number(ex.amount);
+    }
     totalExpense += Number(ex.amount);
+
     const familyWeights = getFamilyShareWeights(selectedFamilies);
     const totalWeight = familyWeights.reduce((s,x)=>s+x.weight, 0);
     for(const fw of familyWeights){
@@ -462,10 +418,10 @@ function calculate(){
   const settlements = buildSettlements(familyRows);
   const categoryRows = Object.entries(categoryMap).map(([key,amount])=>{
     const [type, category] = key.split('|');
-    return {typeText:type==='income'?'收入':'支出', category, amount};
+    return {typeText: type==='income'?'收入':type==='公積金存入'?'公積金存入':'支出', category, amount};
   }).sort((a,b)=>b.amount-a.amount);
 
-  return {familyRows, settlements, categoryRows, totalExpense, totalIncome};
+  return {familyRows, settlements, categoryRows, totalExpense, totalIncome, fundIn, fundOut, fundBalance};
 }
 function buildSettlements(rows){
   const creditors = rows.filter(r=>r.net>0.005).map(r=>({...r, remain:r.net})).sort((a,b)=>b.remain-a.remain);
@@ -487,6 +443,8 @@ function renderBase(){
   document.getElementById('tripName').value = current.tripName || '';
   document.getElementById('currency').value = current.currency || 'NT$';
   document.getElementById('familySplitMode').value = current.familySplitMode || 'equal';
+  const {fundBalance} = calculateFundBalance();
+  document.getElementById('fundBalanceView').value = money(fundBalance);
   refreshShareUrl();
 }
 function renderFamilies(){
@@ -510,19 +468,22 @@ function renderFamilies(){
 }
 function renderEntries(){
   const box = document.getElementById('entryList');
-  if(current.entries.length===0){ box.innerHTML = '<div class="muted">尚未新增收入或支出</div>'; return; }
+  if(current.entries.length===0){ box.innerHTML = '<div class="muted">尚未新增紀錄</div>'; return; }
   box.innerHTML = current.entries.map((e,idx)=>{
     const fam = current.families.find(f=>f.id===e.payerFamilyId);
     const parts = e.type==='expense' ? current.families.filter(f=>(e.participantFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、') : '—';
+    const typeTag = e.type==='income' ? '收入' : e.type==='fund_deposit' ? '公積金存入' : '支出';
+    const tagClass = e.type==='income' ? 'income' : e.type==='fund_deposit' ? 'fund' : 'expense';
     return `
       <div class="entry">
         <div class="entry-head">
           <div>
             <div class="entry-name">${idx+1}. ${escapeHtml(e.title)}</div>
             <div class="mini">
-              <span class="tag ${e.type==='income'?'income':'expense'}">${e.type==='income'?'收入':'支出'}</span>
+              <span class="tag ${tagClass}">${typeTag}</span>
               分類：<span class="tag">${escapeHtml(e.category || '未分類')}</span>
              　家庭：${escapeHtml(fam?.name || '-')}
+              ${e.type==='expense' && e.useFund ? '　<span class="tag fund">公積金扣款</span>' : ''}
             </div>
           </div>
           <div class="btns">
@@ -531,19 +492,23 @@ function renderEntries(){
             <button class="danger" onclick="removeEntry('${e.id}')">刪除</button>
           </div>
         </div>
-        <div class="mini">${e.type==='income'?'收入歸屬家庭':'參與家庭'}：${escapeHtml(parts)}</div>
+        <div class="mini">${e.type==='income'?'收入歸屬家庭':e.type==='fund_deposit'?'公積金來源家庭':'參與家庭'}：${escapeHtml(parts)}</div>
         ${e.note ? `<div class="mini" style="margin-top:6px">備註：${escapeHtml(e.note)}</div>` : ''}
       </div>
     `;
   }).join('');
 }
 function renderResults(){
-  const {familyRows, settlements, categoryRows, totalExpense, totalIncome} = calculate();
+  const {familyRows, settlements, categoryRows, totalExpense, totalIncome, fundIn, fundOut, fundBalance} = calculate();
   document.getElementById('summaryExpenseTotal').textContent = money(totalExpense);
   document.getElementById('summaryIncomeTotal').textContent = money(totalIncome);
+  document.getElementById('summaryFundIn').textContent = money(fundIn);
+  document.getElementById('summaryFundOut').textContent = money(fundOut);
+  document.getElementById('summaryFundBalance').textContent = money(fundBalance);
   document.getElementById('summaryNetTotal').textContent = money(totalExpense-totalIncome);
   document.getElementById('summaryFamilyCount').textContent = current.families.length;
   document.getElementById('summaryEntryCount').textContent = current.entries.length;
+  document.getElementById('fundBalanceView').value = money(fundBalance);
 
   document.getElementById('categoryTable').innerHTML = categoryRows.length===0 ? '<div class="muted">無資料</div>' : `
     <table><thead><tr><th>類型</th><th>分類</th><th class="right">金額</th></tr></thead><tbody>
@@ -562,24 +527,13 @@ function renderResults(){
 
   document.getElementById('lineTransferText').textContent = settlements.length===0 ? '目前無需轉帳' : settlements.map(s=>`${s.from} → ${s.to}：${money(s.amount)}`).join('\n');
 }
-function renderAll(){
-  renderBase();
-  renderFamilies();
-  renderEntryInputs();
-  renderEntries();
-  renderResults();
-  if(!editingId) clearEntryForm();
-}
+function renderAll(){ renderBase(); renderFamilies(); renderEntryInputs(); renderEntries(); renderResults(); if(!editingId) clearEntryForm(); }
 function exportJson(){
   const blob = new Blob([JSON.stringify(current, null, 2)], {type:'application/json;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${current.bookName || '分帳表'}.json`;
-  a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${current.bookName || '分帳表'}.json`; a.click();
 }
 function importJson(e){
-  const file = e.target.files[0];
-  if(!file) return;
+  const file = e.target.files[0]; if(!file) return;
   const reader = new FileReader();
   reader.onload = () => {
     try{
@@ -588,54 +542,37 @@ function importJson(e){
       current.bookKey = currentKey;
       if(!current.entries) current.entries = [];
       if(!current.families) current.families = [];
-      saveStorage();
-      editingId = null;
-      renderAll();
-      alert('匯入完成');
-    }catch(err){
-      alert('匯入失敗，請確認 JSON 格式正確');
-    }
+      saveStorage(); editingId = null; renderAll(); alert('匯入完成');
+    }catch(err){ alert('匯入失敗，請確認 JSON 格式正確'); }
     e.target.value = '';
   };
   reader.readAsText(file, 'utf-8');
 }
 function triggerImport(){ document.getElementById('importFile').click(); }
 function exportCSV(){
-  const {familyRows, settlements, categoryRows, totalExpense, totalIncome} = calculate();
+  const {familyRows, settlements, categoryRows, totalExpense, totalIncome, fundIn, fundOut, fundBalance} = calculate();
   const lines = [];
   const csvCell = v => /[",\n]/.test(String(v ?? '')) ? `"${String(v).replace(/"/g,'""')}"` : String(v ?? '');
   const addSection = (title, rows) => { lines.push(title); rows.forEach(r => lines.push(r.map(csvCell).join(','))); lines.push(''); };
-  addSection('總覽', [
-    ['帳本名稱', current.bookName],
-    ['帳本代號', current.bookKey],
-    ['旅程名稱', current.tripName || ''],
-    ['幣別', current.currency || ''],
-    ['總支出', totalExpense.toFixed(2)],
-    ['總收入', totalIncome.toFixed(2)],
-    ['淨支出', (totalExpense-totalIncome).toFixed(2)]
-  ]);
+  addSection('總覽', [['帳本名稱', current.bookName], ['帳本代號', current.bookKey], ['旅程名稱', current.tripName||''], ['幣別', current.currency||''], ['總支出', totalExpense.toFixed(2)], ['總收入', totalIncome.toFixed(2)], ['公積金存入', fundIn.toFixed(2)], ['公積金扣款', fundOut.toFixed(2)], ['公積金餘額', fundBalance.toFixed(2)]]);
   addSection('分類統計', [['類型','分類','金額']].concat(categoryRows.map(r=>[r.typeText, r.category, r.amount.toFixed(2)])));
   addSection('各家庭結算', [['家庭','支出付款','支出分攤','收入歸屬','淨額']].concat(familyRows.map(r=>[r.familyName, r.expensePaid.toFixed(2), r.expenseOwed.toFixed(2), r.incomeReceived.toFixed(2), r.net.toFixed(2)])));
   addSection('家庭間轉帳清單', [['付款方','收款方','金額']].concat(settlements.map(s=>[s.from, s.to, s.amount.toFixed(2)])));
-  addSection('明細', [['類型','項目','分類','金額','家庭','參與家庭','備註']].concat(current.entries.map(e=>{
+  addSection('明細', [['類型','項目','分類','金額','家庭','參與家庭','公積金扣款','備註']].concat(current.entries.map(e=>{
     const fam = current.families.find(f=>f.id===e.payerFamilyId);
     const parts = e.type==='expense' ? current.families.filter(f=>(e.participantFamilyIds||[]).includes(f.id)).map(f=>f.name).join('、') : '';
-    return [e.type==='income'?'收入':'支出', e.title, e.category||'', Number(e.amount||0).toFixed(2), fam?.name||'', parts, e.note||''];
+    const typeText = e.type==='income'?'收入':e.type==='fund_deposit'?'公積金存入':'支出';
+    return [typeText, e.title, e.category||'', Number(e.amount||0).toFixed(2), fam?.name||'', parts, e.useFund?'是':'否', e.note||''];
   })));
   const csv = '\ufeff' + lines.join('\n');
   const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `${current.bookName || '分帳表'}.csv`;
-  a.click();
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `${current.bookName || '分帳表'}.csv`; a.click();
 }
-function copyLineText(){
-  navigator.clipboard.writeText(document.getElementById('lineTransferText').textContent).then(()=>alert('已複製 LINE 轉帳文字'));
-}
+function copyLineText(){ navigator.clipboard.writeText(document.getElementById('lineTransferText').textContent).then(()=>alert('已複製 LINE 轉帳文字')); }
 
-document.getElementById('tripName').addEventListener('input', ()=>{ saveLocal(); });
-document.getElementById('currency').addEventListener('change', ()=>{ saveLocal(); renderResults(); });
-document.getElementById('familySplitMode').addEventListener('change', ()=>{ saveLocal(); renderResults(); });
+document.getElementById('tripName').addEventListener('input', saveLocal);
+document.getElementById('currency').addEventListener('change', saveLocal);
+document.getElementById('familySplitMode').addEventListener('change', saveLocal);
 document.getElementById('entryType').addEventListener('change', onEntryTypeChange);
 
 ensureBook();
