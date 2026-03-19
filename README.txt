@@ -1,19 +1,8 @@
-最終版使用方式
+網址帳本版＋公積金＋帳本總覽
 
-1. 這版已內建 Firebase 設定
-2. 固定共用房號：family-trip
-3. 所有人打開同一個網址即可共用
-4. 第一次請先在 Firebase Firestore 規則設為：
-
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /travelRooms/{roomId} {
-      allow read, write: if true;
-    }
-  }
-}
-
-上線方式
-- 直接把本資料夾丟到 Netlify Drop
-- 或上傳到任何靜態網站空間
+新增功能：
+1. 顯示所有開過的帳本
+2. 可直接開啟指定帳本
+3. 可複製指定帳本網址
+4. 可刪除帳本
+5. 保留公積金存入、扣款、餘額顯示
