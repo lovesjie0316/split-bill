@@ -232,8 +232,7 @@ function renderFamilyChecks(targetId, inputClass, checked=true){
 function renderEntryInputs(){
   const payer=document.getElementById('payerFamily');
   payer.innerHTML=current.families.map(f=>`<option value="${f.id}">${escapeHtml(f.name)}</option>`).join('');
-  renderFamilyChecks('participantFamilies','participant-family',True:=True)
-  document.getElementById('participantFamilies').innerHTML = current.families.map(f=>`<label class="check-item"><input class="participant-family" type="checkbox" value="${f.id}" checked><span>${escapeHtml(f.name)}</span></label>`).join('');
+  renderFamilyChecks('participantFamilies','participant-family', true);
   document.getElementById('fundContributorFamilies').innerHTML = current.families.map(f=>`<label class="check-item"><input class="fund-contributor-family" type="checkbox" value="${f.id}"><span>${escapeHtml(f.name)}</span></label>`).join('');
   buildCustomAllocInputs();
   onEntryTypeChange();
